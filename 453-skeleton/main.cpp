@@ -253,7 +253,6 @@ public:
 };
 // END EXAMPLES
 
-
 int main() {
 	Log::debug("Starting main");
 
@@ -264,6 +263,9 @@ int main() {
 	int width = 800;
 	int height = 800;
 	Window window(width, height, "CPSC 453");
+
+	//set up the image buffer for output
+	//outpuImage.Initialize();
 
 	GLDebug::enable();
 
@@ -285,7 +287,7 @@ int main() {
 
 
 	// Save image to file:
-	// outpuImage.SaveToFile("foo.png")
+	a5->outputImage.SaveToFile("foo.png");
 
 	glfwTerminate();
 	return 0;
