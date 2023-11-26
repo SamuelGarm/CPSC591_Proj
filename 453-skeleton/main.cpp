@@ -25,6 +25,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+#include "PhotonMapping.h"
 
 int hasIntersection(Scene const &scene, Ray ray, int skipID){
 	for (auto &shape : scene.shapesInScene) {
@@ -253,7 +254,12 @@ public:
 };
 // END EXAMPLES
 
+
+
 int main() {
+	testKD();
+	return 1;
+
 	Log::debug("Starting main");
 
 	// WINDOW

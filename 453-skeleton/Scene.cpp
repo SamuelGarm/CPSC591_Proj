@@ -5,6 +5,7 @@
 #include <algorithm> // For std::max
 #include <limits> // For std::numeric_limits
 
+
 // Some constants defining the various scenes
 
 //Reflective grey sphere
