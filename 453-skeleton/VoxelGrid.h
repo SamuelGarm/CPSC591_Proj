@@ -3,12 +3,14 @@
 * indexing starts with 0 at (0,0,0) then increases first along the x, then the y, then the z
 */
 #pragma once
+#include <glm/glm.hpp>
 
 template <typename T>
 class VoxelGrid  {
 public:
 	VoxelGrid(int x_length, int y_length, int z_length);
 	T& at(int x, int y, int z);
+	glm::vec3 getDimensions();
 	~VoxelGrid();
 
 private:
@@ -40,4 +42,9 @@ VoxelGrid<T>::VoxelGrid(int _x_length, int _y_length, int _z_length) : x_length(
 template <class T>
 VoxelGrid<T>::~VoxelGrid() {
 	delete[] data;  // Free the allocated memory in the destructor
+}
+
+template <class T>
+glm::vec3 VoxelGrid<T>::getDimensions() {
+	return glm::vec3(x_length, y_length, z_length);
 }
