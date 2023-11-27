@@ -61,7 +61,7 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 		setNeighbours(current_x, current_y, current_z, vGrid, randOrientation);
 	}
 	//std::cout << "Ratio: " << curNumOfClusters / totalNumberOfCells << std::endl;
-	std::cout << "Number of Clusters: " << curNumOfClusters << std::endl;
+	//std::cout << "Number of Clusters: " << curNumOfClusters << std::endl;
 }
 
 // 6 neighbours - orthogonal relation
@@ -210,7 +210,8 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 		for (int i = 0; i < orientations.size(); i++) {
 			averagedOrientation += orientations.at(i);
 		}
-		normalize(averagedOrientation / (float) orientations.size());
+		averagedOrientation = normalize(averagedOrientation / (float) orientations.size());
+		//std::cout << averagedOrientation.x << "," << averagedOrientation.y << "," << averagedOrientation.z << std::endl;
 	}
 
 	return averagedOrientation;
