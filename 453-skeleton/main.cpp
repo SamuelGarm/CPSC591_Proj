@@ -20,6 +20,7 @@
 #include "RayTrace.h"
 #include "Scene.h"
 #include "Lighting.h"
+#include "ClusterVoid.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -257,9 +258,6 @@ public:
 
 
 int main() {
-	testKD();
-	return 1;
-
 	Log::debug("Starting main");
 
 	// WINDOW
@@ -290,6 +288,10 @@ int main() {
 
 		window.swapBuffers();
 	}
+
+	// Code to run the structure construction for voids and clusters
+	VoxelGrid<clusterData> vGrid = setupGrid(100, 75, 25);
+	distributeVoidClusters(vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z, vGrid);
 
 
 	// Save image to file:

@@ -106,7 +106,7 @@ foreach(file ${files})
 	configure_file(${file} shaders/${name})
 endforeach()
 
-add_executable(${APP_NAME} ${SOURCES} "453-skeleton/ClusterVoid.cpp")
+add_executable(${APP_NAME} ${SOURCES} "453-skeleton/ClusterVoid.cpp" "453-skeleton/ClusterVoid.h")
 target_include_directories(${APP_NAME} PRIVATE ${INCLUDES})
 target_link_libraries(${APP_NAME} ${LIBRARIES})
 target_compile_definitions(${APP_NAME} PRIVATE ${DEFINITIONS})
