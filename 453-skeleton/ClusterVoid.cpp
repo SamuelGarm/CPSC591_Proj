@@ -11,15 +11,6 @@ struct clusterData{
 	bool isVoid;								// Boolean if the voxel / cluster is a void
 };
 
-// Used to find the average of a vector
-//https://www.techiedelight.com/find-average-of-all-values-present-in-a-vector-in-cpp/
-template<typename T>
-double getAverage(std::vector<T> const& v) {
-	if (v.empty()) {
-		return 0;
-	}
-	return std::accumulate(v.begin(), v.end(), 0.0) / v.size();
-}
 
 void setupGrid(int x, int y, int z) {
 	VoxelGrid<clusterData> vGrid(x, y, z);     //set up the entire cluster structure as x,y,z dimension
@@ -51,72 +42,138 @@ void distributeVoidClusters(int x, int y, int z, VoxelGrid<clusterData>& vGrid) 
 	currCluster.orientation = randOrientation;
 }
 
-// 26 neighbours
+// 6 neighbours - orthogonal relation
+// sets neighbours to clusters, and sets orientation, either to random or averaged or neighbours
 void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3 randOrientation) {
+	glm::vec3 neighbourOrientation;
 
 	if (x - 1 >= 0 && x - 1 <= vGrid.getDimensions().x) {
-		vGrid.at(x - 1, y, z).isVoid = false;
-		vGrid.at(x - 1, y, z).orientation = randOrientation;
+		vGrid.at(x - 1, y, z).isVoid = false; //sets the cell as a cluster
+
+		// gets the neighbours of that cell, returns averaged neighbour orientation
+		neighbourOrientation = checkNeighbours(x - 1, y, z, vGrid);
+		// if the returned vector is 0, use the random orientation of the original cell.
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+			vGrid.at(x - 1, y, z).orientation = randOrientation;
+		}
+		// if the returned vector isn't 0, use the averaged neighbour vector
+		else {
+			vGrid.at(x - 1, y, z).orientation = neighbourOrientation;
+		}
+		
 	}
 	if (x + 1 >= 0 && x + 1 <= vGrid.getDimensions().x) {
 		vGrid.at(x + 1, y, z).isVoid = false;
-		vGrid.at(x + 1, y, z).orientation = randOrientation;
+
+		neighbourOrientation = checkNeighbours(x + 1, y, z, vGrid);
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+			vGrid.at(x + 1, y, z).orientation = randOrientation;
+		}
+		else {
+			vGrid.at(x + 1, y, z).orientation = randOrientation;
+		}		
 	}
 
 	if (y - 1 >= 0 && y - 1 <= vGrid.getDimensions().y) {
 		vGrid.at(x, y - 1, z).isVoid = false;
-		vGrid.at(x, y - 1, z).orientation = randOrientation;
+
+		neighbourOrientation = checkNeighbours(x, y - 1, z, vGrid);
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+			vGrid.at(x, y - 1, z).orientation = randOrientation;
+		}
+		else {
+			vGrid.at(x, y - 1, z).orientation = randOrientation;
+		}
+
 	}
 	if (y + 1 >= 0 && y + 1 <= vGrid.getDimensions().y) {
 		vGrid.at(x, y + 1 , z).isVoid = false;
-		vGrid.at(x, y + 1, z).orientation = randOrientation;
+
+		neighbourOrientation = checkNeighbours(x, y + 1, z, vGrid);
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+			vGrid.at(x, y + 1, z).orientation = randOrientation;
+		}
+		else {
+			vGrid.at(x, y + 1, z).orientation = randOrientation;
+		}
 	}
 
 	if (z - 1 >= 0 && z - 1 <= vGrid.getDimensions().z) {
 		vGrid.at(x, y, z - 1).isVoid = false;
-		vGrid.at(x, y, z - 1).orientation = randOrientation;
+
+		neighbourOrientation = checkNeighbours(x, y, z - 1, vGrid);
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+			vGrid.at(x, y, z - 1).orientation = randOrientation;
+		}
+		else {
+			vGrid.at(x, y, z - 1).orientation = randOrientation;
+		}
 	}
 	if (z + 1 >= 0 && z + 1 <= vGrid.getDimensions().z) {
 		vGrid.at(x, y, z + 1).isVoid = false;
-		vGrid.at(x, y, z + 1).orientation = randOrientation;
+
+		neighbourOrientation = checkNeighbours(x, y, z + 1, vGrid);
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+			vGrid.at(x, y, z + 1).orientation = randOrientation;
+		}
+		else {
+			vGrid.at(x, y, z + 1).orientation = randOrientation;
+		}
 	}
 }
 
+// Function to check neighbours to get their averaged orientation value if they have one
 glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 	std::vector<glm::vec3> orientations;
-
-	// Remember to normalize vectors
-	// Edge case the result might be a zero vector, in that case ignore
-
-	// TODO: pull out the .isVoid into the if check, or else it might be out of range
-	if (x - 1 >= 0 && x - 1 <= vGrid.getDimensions().x && vGrid.at(x - 1, y, z).isVoid == false) {
-		orientations.push_back(vGrid.at(x - 1, y, z).orientation);
+	
+	// Checks to see if the coordinate is within range
+	if (x - 1 >= 0 && x - 1 <= vGrid.getDimensions().x) {
+		// checks to see if the neighbour is a void - if not a void - get orientation
+		if (vGrid.at(x - 1, y, z).isVoid == false) {
+			orientations.push_back(vGrid.at(x - 1, y, z).orientation);
+		}
+		
 	}
-	if (x + 1 >= 0 && x + 1 <= vGrid.getDimensions().x && vGrid.at(x + 1, y, z).isVoid == false) {
-		orientations.push_back(vGrid.at(x + 1, y, z).orientation);
-	}
-
-	if (y - 1 >= 0 && y - 1 <= vGrid.getDimensions().y && vGrid.at(x, y - 1, z).isVoid == false) {
-		orientations.push_back(vGrid.at(x, y - 1, z).orientation);
-	}
-	if (y + 1 >= 0 && y + 1 <= vGrid.getDimensions().y && vGrid.at(x, y + 1, z).isVoid == false) {
-		orientations.push_back(vGrid.at(x, y + 1, z).orientation);
+	if (x + 1 >= 0 && x + 1 <= vGrid.getDimensions().x) {
+		if (vGrid.at(x + 1, y, z).isVoid == false) {
+			orientations.push_back(vGrid.at(x + 1, y, z).orientation);
+		}
 	}
 
-	if (z - 1 >= 0 && z - 1 <= vGrid.getDimensions().z && vGrid.at(x, y, z - 1).isVoid == false) {
-		orientations.push_back(vGrid.at(x, y, z - 1).orientation);
-	}
-	if (z + 1 >= 0 && z + 1 <= vGrid.getDimensions().z && vGrid.at(x, y, z + 1).isVoid == false) {
-		orientations.push_back(vGrid.at(x, y, z + 1).orientation);
+	if (y - 1 >= 0 && y - 1 <= vGrid.getDimensions().y) {
+		if (vGrid.at(x, y - 1, z).isVoid == false) {
+			orientations.push_back(vGrid.at(x, y - 1, z).orientation);
+		}
 	}
 
-	glm::vec3 averagedOrientation;
+	if (y + 1 >= 0 && y + 1 <= vGrid.getDimensions().y) {
+		if (vGrid.at(x, y + 1, z).isVoid == false) {
+			orientations.push_back(vGrid.at(x, y + 1, z).orientation);
+		}
+	}
+
+	if (z - 1 >= 0 && z - 1 <= vGrid.getDimensions().z) {
+		if (vGrid.at(x, y, z - 1).isVoid == false) {
+			orientations.push_back(vGrid.at(x, y, z - 1).orientation);
+		}		
+	}
+
+	if (z + 1 >= 0 && z + 1 <= vGrid.getDimensions().z) {
+		if (vGrid.at(x, y, z + 1).isVoid == false) {
+			orientations.push_back(vGrid.at(x, y, z + 1).orientation);
+		}		
+	}
+	
+	// If there are some orientations in the list, average them and normalize them
+	glm::vec3 averagedOrientation = glm::vec3(0.0,0.0,0.0);
 	if (orientations.size() > 0) {
 		for (int i = 0; i < orientations.size(); i++) {
 			averagedOrientation += orientations.at(i);
 		}
-		averagedOrientation / (float) orientations.size();
+		normalize(averagedOrientation / (float) orientations.size());
 	}
+
+	return averagedOrientation;
 }
 
 
