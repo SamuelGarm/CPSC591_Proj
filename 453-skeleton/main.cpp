@@ -277,6 +277,20 @@ int main() {
 	std::shared_ptr<Assignment5> a5 = std::make_shared<Assignment5>(); // can also update callbacks to new ones
 	window.setCallbacks(a5); // can also update callbacks to new ones
 
+	// Code to run the structure construction for voids and clusters
+	VoxelGrid<clusterData> vGrid = setupGrid(100, 75, 25);
+	distributeVoidClusters(vGrid);
+
+	//for (int i = 0; i < vGrid.getDimensions().x; i++) {
+	//	for (int j = 0; j < vGrid.getDimensions().y; j++) {
+	//		for (int k = 0; k < vGrid.getDimensions().z; k++) {
+	//			std::cout << vGrid.at(i, j, k).orientation.x << ","
+	//				<< vGrid.at(i, j, k).orientation.y << ","
+	//				<< vGrid.at(i, j, k).orientation.z << std::endl;
+	//		}
+	//	}
+	//}
+
 	// RENDER LOOP
 	while (!window.shouldClose() && !a5->shouldQuit) {
 		glfwPollEvents();
@@ -289,10 +303,7 @@ int main() {
 		window.swapBuffers();
 	}
 
-	// Code to run the structure construction for voids and clusters
-	VoxelGrid<clusterData> vGrid = setupGrid(100, 75, 25);
-	distributeVoidClusters(vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z, vGrid);
-
+	std::cout << "Hi !" << std::endl;
 
 	// Save image to file:
 	a5->outputImage.SaveToFile("foo.png");

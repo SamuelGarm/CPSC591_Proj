@@ -1,7 +1,7 @@
 #include "ClusterVoid.h"
 
 float curNumOfClusters = 0.0f; // used for void ratio calculations
-float voidRatio = 0.5f;        // void ratio used as a clamp for structural setup
+float voidRatio = 0.75f;        // void ratio used as a clamp for structural setup
 
 // Grid initialization
 VoxelGrid<clusterData> setupGrid(int x, int y, int z) {
@@ -15,7 +15,7 @@ void setVoidRatio(float ratio) {
 }
 
 // The main algorithm to distribute clusters and orient them in the structure based on neighbouring heuristics
-void distributeVoidClusters(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
+void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 	// Step 1 - initializes every cluster as a void
 	for (int i = 0; i < vGrid.getDimensions().x; i++) {
 		for (int j = 0; j < vGrid.getDimensions().y; j++) {
@@ -51,15 +51,15 @@ void distributeVoidClusters(int x, int y, int z, VoxelGrid<clusterData>& vGrid) 
 		// if neighbours have orientations, uses the average instead
 		glm::vec3 neighbourOrientation = checkNeighbours(current_x, current_y, current_z, vGrid);
 		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-			vGrid.at(x, y, z + 1).orientation = randOrientation;
+			vGrid.at(current_x, current_y, current_z + 1).orientation = randOrientation;
 		}
 		else {
-			vGrid.at(x, y, z + 1).orientation = neighbourOrientation;
+			vGrid.at(current_x, current_y, current_z + 1).orientation = neighbourOrientation;
 		}
 
 		setNeighbours(current_x, current_y, current_z, vGrid, randOrientation);
 	}
-
+	//std::cout << "Ratio: " << curNumOfClusters / totalNumberOfCells << std::endl;
 }
 
 // 6 neighbours - orthogonal relation
@@ -76,7 +76,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		// gets the neighbours of that cell, returns averaged neighbour orientation
 		neighbourOrientation = checkNeighbours(x - 1, y, z, vGrid);
 		// if the returned vector is 0, use the random orientation of the original cell.
-		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y < 0.0 && neighbourOrientation.z <= 0.0) {
 			vGrid.at(x - 1, y, z).orientation = randOrientation;
 		}
 		// if the returned vector isn't 0, use the averaged neighbour vector
@@ -92,7 +92,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		}
 
 		neighbourOrientation = checkNeighbours(x + 1, y, z, vGrid);
-		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y < 0.0 && neighbourOrientation.z <= 0.0) {
 			vGrid.at(x + 1, y, z).orientation = randOrientation;
 		}
 		else {
@@ -107,7 +107,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		}
 
 		neighbourOrientation = checkNeighbours(x, y - 1, z, vGrid);
-		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y < 0.0 && neighbourOrientation.z <= 0.0) {
 			vGrid.at(x, y - 1, z).orientation = randOrientation;
 		}
 		else {
@@ -122,7 +122,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		}
 
 		neighbourOrientation = checkNeighbours(x, y + 1, z, vGrid);
-		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y < 0.0 && neighbourOrientation.z <= 0.0) {
 			vGrid.at(x, y + 1, z).orientation = randOrientation;
 		}
 		else {
@@ -137,14 +137,14 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		}
 
 		neighbourOrientation = checkNeighbours(x, y, z - 1, vGrid);
-		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
+		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y < 0.0 && neighbourOrientation.z <= 0.0) {
 			vGrid.at(x, y, z - 1).orientation = randOrientation;
 		}
 		else {
 			vGrid.at(x, y, z - 1).orientation = neighbourOrientation;
 		}
 	}
-	if (z + 1 >= 0 && z + 1 <= vGrid.getDimensions().z) {
+	if (z + 1 >= 0 && z + 1 < vGrid.getDimensions().z) {
 		if (vGrid.at(x, y, z + 1).isVoid == true) {
 			vGrid.at(x, y, z + 1).isVoid = false;
 			curNumOfClusters++;
@@ -165,38 +165,38 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 	std::vector<glm::vec3> orientations;
 	
 	// Checks to see if the coordinate is within range
-	if (x - 1 >= 0 && x - 1 <= vGrid.getDimensions().x) {
+	if (x - 1 >= 0 && x - 1 < vGrid.getDimensions().x) {
 		// checks to see if the neighbour is a void - if not a void - get orientation
 		if (vGrid.at(x - 1, y, z).isVoid == false) {
 			orientations.push_back(vGrid.at(x - 1, y, z).orientation);
 		}
 		
 	}
-	if (x + 1 >= 0 && x + 1 <= vGrid.getDimensions().x) {
+	if (x + 1 >= 0 && x + 1 < vGrid.getDimensions().x) {
 		if (vGrid.at(x + 1, y, z).isVoid == false) {
 			orientations.push_back(vGrid.at(x + 1, y, z).orientation);
 		}
 	}
 
-	if (y - 1 >= 0 && y - 1 <= vGrid.getDimensions().y) {
+	if (y - 1 >= 0 && y - 1 < vGrid.getDimensions().y) {
 		if (vGrid.at(x, y - 1, z).isVoid == false) {
 			orientations.push_back(vGrid.at(x, y - 1, z).orientation);
 		}
 	}
 
-	if (y + 1 >= 0 && y + 1 <= vGrid.getDimensions().y) {
+	if (y + 1 >= 0 && y + 1 < vGrid.getDimensions().y) {
 		if (vGrid.at(x, y + 1, z).isVoid == false) {
 			orientations.push_back(vGrid.at(x, y + 1, z).orientation);
 		}
 	}
 
-	if (z - 1 >= 0 && z - 1 <= vGrid.getDimensions().z) {
+	if (z - 1 >= 0 && z - 1 < vGrid.getDimensions().z) {
 		if (vGrid.at(x, y, z - 1).isVoid == false) {
 			orientations.push_back(vGrid.at(x, y, z - 1).orientation);
 		}		
 	}
 
-	if (z + 1 >= 0 && z + 1 <= vGrid.getDimensions().z) {
+	if (z + 1 >= 0 && z + 1 < vGrid.getDimensions().z) {
 		if (vGrid.at(x, y, z + 1).isVoid == false) {
 			orientations.push_back(vGrid.at(x, y, z + 1).orientation);
 		}		
