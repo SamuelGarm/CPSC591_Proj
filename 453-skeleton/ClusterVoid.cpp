@@ -22,7 +22,7 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 	for (int i = 0; i < vGrid.getDimensions().x; i++) {
 		for (int j = 0; j < vGrid.getDimensions().y; j++) {
 			for (int k = 0; k < vGrid.getDimensions().z; k++) {
-				vGrid.at(i, j, k).isVoid = true;
+				vGrid.at(i, j, k).material = Void;
 			}
 		}
 	}
@@ -38,8 +38,8 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z-1);
 		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
 		// sets it as a cluster if it's a void
-		if (currCluster.isVoid == true) {
-			currCluster.isVoid = false;
+		if (currCluster.material == Void) {
+			currCluster.material = Cluster;
 			curNumOfClusters++;
 		}
 
@@ -75,8 +75,8 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 	glm::vec3 neighbourOrientation;
 
 	if (x - 1 >= 0 && x - 1 < vGrid.getDimensions().x) {
-		if (vGrid.at(x - 1, y, z).isVoid == true) {
-			vGrid.at(x - 1, y, z).isVoid = false; //sets the cell as a cluster
+		if (vGrid.at(x - 1, y, z).material == Void) {
+			vGrid.at(x - 1, y, z).material = Cluster; //sets the cell as a cluster
 			curNumOfClusters++;
 		}
 
@@ -95,8 +95,8 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		
 	}
 	if (x + 1 >= 0 && x + 1 < vGrid.getDimensions().x) {
-		if (vGrid.at(x + 1, y, z).isVoid == true) {
-			vGrid.at(x + 1, y, z).isVoid = false;
+		if (vGrid.at(x + 1, y, z).material == Void) {
+			vGrid.at(x + 1, y, z).material = Cluster;
 			curNumOfClusters++;
 		}
 
@@ -112,8 +112,8 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 	}
 
 	if (y - 1 >= 0 && y - 1 < vGrid.getDimensions().y) {
-		if (vGrid.at(x, y - 1, z).isVoid == true) {
-			vGrid.at(x, y - 1, z).isVoid = false;
+		if (vGrid.at(x, y - 1, z).material == Void) {
+			vGrid.at(x, y - 1, z).material = Cluster;
 			curNumOfClusters++;
 		}
 
@@ -129,8 +129,8 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 
 	}
 	if (y + 1 >= 0 && y + 1 < vGrid.getDimensions().y) {
-		if (vGrid.at(x, y + 1, z).isVoid == true) {
-			vGrid.at(x, y + 1, z).isVoid = false;
+		if (vGrid.at(x, y + 1, z).material == Void) {
+			vGrid.at(x, y + 1, z).material = Cluster;
 			curNumOfClusters++;
 		}
 
@@ -146,8 +146,8 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 	}
 
 	if (z - 1 >= 0 && z - 1 < vGrid.getDimensions().z) {
-		if (vGrid.at(x, y, z - 1).isVoid == true) {
-			vGrid.at(x, y, z - 1).isVoid = false;
+		if (vGrid.at(x, y, z - 1).material == Void) {
+			vGrid.at(x, y, z - 1).material = Cluster;
 			curNumOfClusters++;
 		}
 
@@ -162,8 +162,8 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 		}
 	}
 	if (z + 1 >= 0 && z + 1 < vGrid.getDimensions().z) {
-		if (vGrid.at(x, y, z + 1).isVoid == true) {
-			vGrid.at(x, y, z + 1).isVoid = false;
+		if (vGrid.at(x, y, z + 1).material == Void) {
+			vGrid.at(x, y, z + 1).material = Cluster;
 			curNumOfClusters++;
 		}
 
@@ -186,37 +186,37 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 	// Checks to see if the coordinate is within range
 	if (x - 1 >= 0 && x - 1 < vGrid.getDimensions().x) {
 		// checks to see if the neighbour is a void - if not a void - get orientation
-		if (vGrid.at(x - 1, y, z).isVoid == false) {
+		if (vGrid.at(x - 1, y, z).material == Cluster) {
 			orientations.push_back(vGrid.at(x - 1, y, z).orientation);
 		}
 		
 	}
 	if (x + 1 >= 0 && x + 1 < vGrid.getDimensions().x) {
-		if (vGrid.at(x + 1, y, z).isVoid == false) {
+		if (vGrid.at(x + 1, y, z).material == Cluster) {
 			orientations.push_back(vGrid.at(x + 1, y, z).orientation);
 		}
 	}
 
 	if (y - 1 >= 0 && y - 1 < vGrid.getDimensions().y) {
-		if (vGrid.at(x, y - 1, z).isVoid == false) {
+		if (vGrid.at(x, y - 1, z).material == Cluster) {
 			orientations.push_back(vGrid.at(x, y - 1, z).orientation);
 		}
 	}
 
 	if (y + 1 >= 0 && y + 1 < vGrid.getDimensions().y) {
-		if (vGrid.at(x, y + 1, z).isVoid == false) {
+		if (vGrid.at(x, y + 1, z).material == Cluster) {
 			orientations.push_back(vGrid.at(x, y + 1, z).orientation);
 		}
 	}
 
 	if (z - 1 >= 0 && z - 1 < vGrid.getDimensions().z) {
-		if (vGrid.at(x, y, z - 1).isVoid == false) {
+		if (vGrid.at(x, y, z - 1).material == Cluster) {
 			orientations.push_back(vGrid.at(x, y, z - 1).orientation);
 		}		
 	}
 
 	if (z + 1 >= 0 && z + 1 < vGrid.getDimensions().z) {
-		if (vGrid.at(x, y, z + 1).isVoid == false) {
+		if (vGrid.at(x, y, z + 1).material == Cluster) {
 			orientations.push_back(vGrid.at(x, y, z + 1).orientation);
 		}		
 	}
