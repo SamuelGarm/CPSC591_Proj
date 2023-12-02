@@ -172,7 +172,7 @@ int main() {
 	window.setCallbacks(a5); // can also update callbacks to new ones
 
 	// Code to run the structure construction for voids and clusters
-	glm::vec3 voxelGridSize = glm::vec3(100, 75, 25);
+	glm::vec3 voxelGridSize = glm::vec3(10, 7, 2);
 	VoxelGrid<clusterData> vGrid = setupGrid(voxelGridSize.x, voxelGridSize.y, voxelGridSize.z);
 	distributeVoidClusters(vGrid);
 		
@@ -208,6 +208,8 @@ int main() {
 	double accumulator = 0.0; // The accumulator for the remaining time
 	auto previous_time = std::chrono::steady_clock::now(); // The time of the previous update
 	double frameTime = 1.f;
+
+	auto bgColour = panel::clear_color;
 	// RENDER LOOP
 	while (!window.shouldClose() && !a5->shouldQuit) {
 		glfwPollEvents();
@@ -225,8 +227,12 @@ int main() {
 		glm::mat4 V = a5->camera.getView();
 
 		glEnable(GL_DEPTH_TEST);
-		//auto color = panel::clear_color;
-		glClearColor(1,1,1,1);
+
+		if (panel::bgColourChanged) {
+			bgColour = panel::clear_color;
+			panel::bgColourChanged = false;
+		}
+		glClearColor(bgColour.x,bgColour.y,bgColour.z,1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -11,6 +11,8 @@ namespace panel {
 extern bool showPanel;
 extern ImVec4 clear_color;
 
+extern bool bgColourChanged;
+
 // clipping planes
 extern bool useClipping;
 extern float xClipMin;

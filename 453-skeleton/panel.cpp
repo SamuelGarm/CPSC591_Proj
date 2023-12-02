@@ -10,7 +10,7 @@ namespace panel {
 
 // default values
 bool showPanel = false;
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 // clipping planes
 bool useClipping = false;
@@ -24,7 +24,7 @@ float zClipMin = 0;
 float zClipMax = 10;
 
 bool clippingChanged = false;
-
+bool bgColourChanged = false;
 bool camSpeedChanged = false;
 float camSpeed = 0.3f;
 
@@ -54,7 +54,9 @@ void updateMenu() {
 
     Spacing();
     if (CollapsingHeader("Background Color")) { // Clear
-      ColorEdit3("Clear color", (float *)&clear_color);
+        if (ColorEdit3("BG Colour", (float*)&clear_color)) {
+            bgColourChanged = true;
+        }
     }
 
     Spacing();
