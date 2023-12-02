@@ -264,6 +264,11 @@ int main() {
 			Graphics::loadVoxelgrid(vGrid, clip);
 		}
 
+		if (panel::camSpeedChanged) {
+			a5->camera.cameraSpeed = panel::camSpeed;
+			panel::camSpeedChanged = false;
+		}
+
 		//a5->outputImage.Render();
 		panel::updateMenu();
 		window.swapBuffers();

@@ -25,6 +25,9 @@ float zClipMax = 10;
 
 bool clippingChanged = false;
 
+bool camSpeedChanged = false;
+float camSpeed = 0.3f;
+
 // reset
 bool resetView = false;
 
@@ -62,8 +65,13 @@ void updateMenu() {
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
 
+
+
     Spacing();
     Separator();
+    if (InputFloat("Camera Speed", &camSpeed)) {
+        camSpeedChanged = true;
+    }
     resetView = Button("Reset view");
 
     Spacing();
