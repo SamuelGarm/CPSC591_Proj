@@ -154,15 +154,13 @@ public:
 int main() {
 	Log::debug("Starting main");
 
-	std::cout << "HELLO\n" << std::fflush;
-
 	// WINDOW
 	glfwInit();
 
 	// Change your image/screensize here.
-	int width = 800;
+	int width = 1000;
 	int height = 800;
-	Window window(width, height, "CPSC 453");
+	Window window(width, height, "CPSC 491 - Opal");
 
 	//set up the image buffer for output
 	//outpuImage.Initialize();
@@ -177,6 +175,7 @@ int main() {
 	glm::vec3 voxelGridSize = glm::vec3(100, 75, 25);
 	VoxelGrid<clusterData> vGrid = setupGrid(voxelGridSize.x, voxelGridSize.y, voxelGridSize.z);
 	distributeVoidClusters(vGrid);
+		
 	Graphics::setupOpenGL();
 	Graphics::loadVoxelgrid(vGrid);
 
@@ -198,6 +197,7 @@ int main() {
 	//	}
 	//}
 	//std::cout << "Number of Clusters: " << clustNum << std::endl;
+
 	ImGuiIO& io = ImGui::GetIO();
 	Graphics::clippingPlanes* clip = nullptr;
 	panel::maxClipBounds = voxelGridSize;
@@ -245,7 +245,7 @@ int main() {
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedRenderData.size());
 
 		if (panel::clippingChanged) {
-			std::cout << "Clippig changed\n";
+			std::cout << "Clipping changed\n";
 			panel::clippingChanged = false;
 			if (panel::useClipping) {
 				clip = new Graphics::clippingPlanes;
@@ -268,8 +268,6 @@ int main() {
 		panel::updateMenu();
 		window.swapBuffers();
 	}
-
-	std::cout << "Hi !" << std::endl;
 
 	// Save image to file:
 	//a5->outputImage.SaveToFile("foo.png");

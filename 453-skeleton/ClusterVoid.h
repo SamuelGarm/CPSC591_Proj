@@ -8,14 +8,14 @@
 
 #include <iostream>
 
-enum Matrerial { Cluster, Void, Empty };
+enum Material { Cluster, Void, Empty };
 
 struct clusterData {
 	std::vector<glm::vec3> incLightWavelength;	// Wavelength (colour) of incoming light
 	std::vector<glm::vec3> incLightAmplitude;	// Amplitude (energy) of incoming light
 	std::vector<glm::vec3> incLightDir;			// std vector because multiple incoming lights
 	glm::vec3 orientation = glm::vec3(0.0, 0.0, 0.0); // Orientation of voxel / cluster (euler angle difference from the up vector)
-	Matrerial material = Empty;								// Boolean if the voxel / cluster is a void
+	Material material = Empty;								// Boolean if the voxel / cluster is a void
 };
 
 void setVoidRatio(float ratio);
