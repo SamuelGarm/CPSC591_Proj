@@ -30,6 +30,11 @@ float camSpeed = 0.3f;
 
 extern VoxelGrid<clusterData> vGrid = setupGrid(0,0,0);
 
+// Variables to index inspections
+int inspectX = 0;
+int inspectY = 0;
+int inspectZ = 0;
+
 // reset
 bool resetView = false;
 
@@ -72,27 +77,57 @@ void updateMenu() {
     Spacing();
     if (CollapsingHeader("Cluster Info")) {
         Text("Size: x:%0.f, y:%0.f, z:%0.f", vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z);
-        Text("Total Voxels: %0.f", vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z);
-        Text("Input Void Ratio: %f", vGrid.getVoidRatio());
+        float totalNumCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
+        Text("Total Voxels: %.f", totalNumCells);
+        Text("Input Cluster Percentage: %f", vGrid.getVoidRatio());
         glm::vec3 actualRatios = getClusterRatios(vGrid);
-        Text("Actual Ratio: %f", actualRatios.y / actualRatios.x);
+        Text("Actual Cluster Percentage: %f", actualRatios.x / totalNumCells);
         Text("Cluster Count: %0.f", actualRatios.x);
         Text("Void Count: %0.f", actualRatios.y);
         Text("Empty Count: %0.f", actualRatios.z);
 
         Separator();
 
-        for (int i = 0; i < vGrid.getDimensions().x; i++) {
-            for (int j = 0; j < vGrid.getDimensions().y; j++) {
-                for (int k = 0; k < vGrid.getDimensions().z; k++) {
-                    Text("Voxel at: %d, %d, %d :: Type-> %d :: Orientation-> %f, %f, %f", i,j,k 
-                        ,vGrid.at(i,j,k).material
-                        ,vGrid.at(i, j, k).orientation.x
-                        ,vGrid.at(i, j, k).orientation.y
-                        ,vGrid.at(i, j, k).orientation.z);
-                }
-            }
+        // I tried using InputInt3 but could not figure out the array inputs
+        Text("Inspect Cell at:");
+        InputInt("X", &inspectX);
+        SameLine;
+        InputInt("Y", &inspectY);
+        SameLine;
+        InputInt("Z", &inspectZ);
+        Text("Types: 0 -> Cluster, 1 -> Void, 2 -> Empty");
+
+        // Range check if the input exists in the voxel grid
+        if (inspectX >= 0 && inspectX < vGrid.getDimensions().x &&
+            inspectY >= 0 && inspectY < vGrid.getDimensions().y &&
+            inspectZ >= 0 && inspectZ < vGrid.getDimensions().z) {
+                //if it exists, display the information about that voxel
+                Text("Voxel at: %d, %d, %d :: Type-> %d :: Orientation-> %f, %f, %f",
+                    inspectX, inspectY, inspectZ
+                    ,vGrid.at(inspectX, inspectY, inspectZ).material
+                    ,vGrid.at(inspectX, inspectY, inspectZ).orientation.x
+                    ,vGrid.at(inspectX, inspectY, inspectZ).orientation.y
+                    ,vGrid.at(inspectX, inspectY, inspectZ).orientation.z);
         }
+        else {
+            Text("Out of range");
+        }
+
+        // This stuff below is commented out because if you make a large grid,
+        // it'll lag the entire simulation heavily, I opted for creating an input inspection
+        // as shown above
+        
+        //for (int i = 0; i < vGrid.getDimensions().x; i++) {
+        //    for (int j = 0; j < vGrid.getDimensions().y; j++) {
+        //        for (int k = 0; k < vGrid.getDimensions().z; k++) {
+        //            Text("Voxel at: %d, %d, %d :: Type-> %d :: Orientation-> %f, %f, %f", i,j,k 
+        //                ,vGrid.at(i,j,k).material
+        //                ,vGrid.at(i, j, k).orientation.x
+        //                ,vGrid.at(i, j, k).orientation.y
+        //                ,vGrid.at(i, j, k).orientation.z);
+        //        }
+        //    }
+        //}
     }
 
     Spacing();
