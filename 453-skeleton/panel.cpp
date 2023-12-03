@@ -87,7 +87,7 @@ void updateMenu() {
         Text("Total Voxels: %.f", totalNumCells);
         Text("Input Cluster Percentage: %f", vGrid.getVoidRatio());
         glm::vec3 actualRatios = getClusterRatios(vGrid);
-        Text("Actual Cluster Percentage: %f", actualRatios.x / totalNumCells);
+        Text("Actual Cluster Percentage: %f", actualRatios.x / (actualRatios.x + actualRatios.y));
         Text("Cluster Count: %0.f", actualRatios.x);
         Text("Void Count: %0.f", actualRatios.y);
         Text("Empty Count: %0.f", actualRatios.z);

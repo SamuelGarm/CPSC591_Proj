@@ -252,8 +252,8 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 // directions on a parametric surface
 // https://mathworld.wolfram.com/Ellipsoid.html
 std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
-	int uLength = 100;
-	int vLength = 100;
+	int uLength = 500;
+	int vLength = 500;
 	float x, y, z;
 
 	//float lowestX = 0;
@@ -289,6 +289,11 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
 			x = x + (a / 2.f) -1;
 			y = y + (b / 2.f) -1;
 			z = z + (c / 2.f) -1;
+
+			if (x < 0) x = 0;
+			if (y < 0) y = 0;
+			if (z < 0) z = 0;
+
 			coords.push_back(glm::vec3(x, y, z));
 		}
 	}
