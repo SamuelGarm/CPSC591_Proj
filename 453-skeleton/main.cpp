@@ -174,29 +174,14 @@ int main() {
 	// Code to run the structure construction for voids and clusters
 	glm::vec3 voxelGridSize = glm::vec3(10, 7, 2);
 	VoxelGrid<clusterData> vGrid = setupGrid(voxelGridSize.x, voxelGridSize.y, voxelGridSize.z);
+	vGrid.setVoidRatio(0.75f);
 	distributeVoidClusters(vGrid);
 		
 	Graphics::setupOpenGL();
 	Graphics::loadVoxelgrid(vGrid);
 
-	//int clustNum = 0;
-
-	//for (int i = 0; i < vGrid.getDimensions().x; i++) {
-	//	for (int j = 0; j < vGrid.getDimensions().y; j++) {
-	//		for (int k = 0; k < vGrid.getDimensions().z; k++) {
-	//			std::cout << vGrid.at(i, j, k).orientation.x << ","
-	//				<< vGrid.at(i, j, k).orientation.y << ","
-	//				<< vGrid.at(i, j, k).orientation.z << std::endl;
-	//			 
-	//			//std::cout << vGrid.at(i, j, k).isVoid << std::endl;
-	//			// 
-	//			//if (vGrid.at(i, j, k).isVoid == false) {
-	//			//	clustNum++;
-	//			//}
-	//		}
-	//	}
-	//}
-	//std::cout << "Number of Clusters: " << clustNum << std::endl;
+	// Sends the vGrid to the panel to display info
+	panel::vGrid = vGrid;
 
 	ImGuiIO& io = ImGui::GetIO();
 	Graphics::clippingPlanes* clip = nullptr;

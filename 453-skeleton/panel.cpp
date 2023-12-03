@@ -28,6 +28,8 @@ bool bgColourChanged = false;
 bool camSpeedChanged = false;
 float camSpeed = 0.3f;
 
+extern VoxelGrid<clusterData> vGrid = setupGrid(0,0,0);
+
 // reset
 bool resetView = false;
 
@@ -67,7 +69,31 @@ void updateMenu() {
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
 
+    Spacing();
+    if (CollapsingHeader("Cluster Info")) {
+        Text("Size: x:%0.f, y:%0.f, z:%0.f", vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z);
+        Text("Total Voxels: %0.f", vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z);
+        Text("Input Void Ratio: %f", vGrid.getVoidRatio());
+        glm::vec3 actualRatios = getClusterRatios(vGrid);
+        Text("Actual Ratio: %f", actualRatios.y / actualRatios.x);
+        Text("Cluster Count: %0.f", actualRatios.x);
+        Text("Void Count: %0.f", actualRatios.y);
+        Text("Empty Count: %0.f", actualRatios.z);
 
+        Separator();
+
+        for (int i = 0; i < vGrid.getDimensions().x; i++) {
+            for (int j = 0; j < vGrid.getDimensions().y; j++) {
+                for (int k = 0; k < vGrid.getDimensions().z; k++) {
+                    Text("Voxel at: %d, %d, %d :: Type-> %d :: Orientation-> %f, %f, %f", i,j,k 
+                        ,vGrid.at(i,j,k).material
+                        ,vGrid.at(i, j, k).orientation.x
+                        ,vGrid.at(i, j, k).orientation.y
+                        ,vGrid.at(i, j, k).orientation.z);
+                }
+            }
+        }
+    }
 
     Spacing();
     Separator();

@@ -6,6 +6,8 @@
 
 #include "imgui/imgui.h"
 
+#include "ClusterVoid.h"
+
 namespace panel {
 
 extern bool showPanel;
@@ -27,6 +29,8 @@ extern glm::vec3 maxClipBounds;
 
 extern bool camSpeedChanged;
 extern float camSpeed;
+
+extern VoxelGrid<clusterData> vGrid;
 
 // reset
 extern bool resetView;

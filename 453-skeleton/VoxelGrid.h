@@ -11,6 +11,8 @@ public:
 	VoxelGrid(int x_length, int y_length, int z_length);
 	T& at(int x, int y, int z);
 	glm::vec3 getDimensions();
+	void setVoidRatio(float ratio);
+	float getVoidRatio();
 	~VoxelGrid();
 
 private:
@@ -18,6 +20,8 @@ private:
 	int x_length = 0;
 	int y_length = 0;
 	int z_length = 0;
+
+	float voidRatio = 0.f;
 
 	T* data = nullptr;
 };
@@ -47,4 +51,14 @@ VoxelGrid<T>::~VoxelGrid() {
 template <class T>
 glm::vec3 VoxelGrid<T>::getDimensions() {
 	return glm::vec3(x_length, y_length, z_length);
+}
+
+template <class T>
+void VoxelGrid<T>::setVoidRatio(float ratio) {
+	voidRatio = ratio;
+}
+
+template <class T>
+float VoxelGrid<T>::getVoidRatio() {
+	return voidRatio;
 }

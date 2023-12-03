@@ -18,7 +18,7 @@ struct clusterData {
 	Material material = Empty;								// Boolean if the voxel / cluster is a void
 };
 
-void setVoidRatio(float ratio);
+glm::vec3 getClusterRatios(VoxelGrid<clusterData>& vGrid);
 
 VoxelGrid<clusterData> setupGrid(int x, int y, int z);
 
