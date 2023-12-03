@@ -14,7 +14,7 @@ out vec3 vertCol;
 
 
 void main() {
-	vertCol = orientation;
+	vertCol = orientation / 360.0;
 	norm = in_norm;
 	FragPos = vec3(instanceMatrix * vec4(in_pos, 1.0));
 	gl_Position = cameraMat * instanceMatrix * vec4(in_pos, 1.0);

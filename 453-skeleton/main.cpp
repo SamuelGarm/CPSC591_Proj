@@ -172,7 +172,7 @@ int main() {
 	window.setCallbacks(a5); // can also update callbacks to new ones
 
 	// Code to run the structure construction for voids and clusters
-	glm::vec3 voxelGridSize = glm::vec3(10, 7, 2);
+	glm::vec3 voxelGridSize = glm::vec3(100, 75, 25);
 	VoxelGrid<clusterData> vGrid = setupGrid(voxelGridSize.x, voxelGridSize.y, voxelGridSize.z);
 	vGrid.setVoidRatio(0.75f);
 	distributeVoidClusters(vGrid);

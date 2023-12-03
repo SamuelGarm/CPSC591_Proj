@@ -47,7 +47,8 @@ glm::vec3 randOrientation() {
 	float randOrientation_x = glm::linearRand<float>(0, 360);
 	float randOrientation_y = glm::linearRand<float>(0, 360);
 	float randOrientation_z = glm::linearRand<float>(0, 360);
-	return normalize(glm::vec3(randOrientation_x, randOrientation_y, randOrientation_z));
+	//return normalize(glm::vec3(randOrientation_x, randOrientation_y, randOrientation_z));
+	return glm::vec3(randOrientation_x, randOrientation_y, randOrientation_z);
 }
 
 // The main algorithm to distribute clusters and orient them in the structure based on neighbouring heuristics
@@ -239,7 +240,8 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 		for (int i = 0; i < orientations.size(); i++) {
 			averagedOrientation += orientations.at(i);
 		}
-		averagedOrientation = normalize(averagedOrientation / (float) orientations.size());
+		//averagedOrientation = normalize(averagedOrientation / (float) orientations.size());
+		averagedOrientation = averagedOrientation / (float)orientations.size();
 	}
 
 
