@@ -30,6 +30,13 @@ bool bgColourChanged = false;
 bool camSpeedChanged = false;
 float camSpeed = 0.3f;
 
+extern VoxelGrid<clusterData> vGrid = setupGrid(0,0,0);
+
+// Variables to index inspections
+int inspectX = 0;
+int inspectY = 0;
+int inspectZ = 0;
+
 // reset
 bool resetView = false;
 
@@ -73,6 +80,68 @@ void updateMenu() {
     Spacing();
     const char* items[] = { "Orientation", "grating" };
     Combo("RenderingPipeline", &renderPipeline, items, 2);
+    Spacing();
+    if (CollapsingHeader("Cluster Info")) {
+        Text("Size: x:%0.f, y:%0.f, z:%0.f", vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z);
+        float totalNumCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
+        Text("Total Voxels: %.f", totalNumCells);
+        Text("Input Cluster Percentage: %f", vGrid.getVoidRatio());
+        glm::vec3 actualRatios = getClusterRatios(vGrid);
+        Text("Actual Cluster Percentage: %f", actualRatios.x / totalNumCells);
+        Text("Cluster Count: %0.f", actualRatios.x);
+        Text("Void Count: %0.f", actualRatios.y);
+        Text("Empty Count: %0.f", actualRatios.z);
+
+        Separator();
+
+        // I tried using InputInt3 but could not figure out the array inputs
+        Text("Inspect Cell at:");
+        InputInt("X", &inspectX);
+        SameLine;
+        InputInt("Y", &inspectY);
+        SameLine;
+        InputInt("Z", &inspectZ);
+
+        // Range check if the input exists in the voxel grid
+        if (inspectX >= 0 && inspectX < vGrid.getDimensions().x &&
+            inspectY >= 0 && inspectY < vGrid.getDimensions().y &&
+            inspectZ >= 0 && inspectZ < vGrid.getDimensions().z) {
+                //if it exists, display the information about that voxel
+                Text("::Voxel Index -> %d, %d, %d", inspectX, inspectY, inspectZ);
+                if (vGrid.at(inspectX, inspectY, inspectZ).material == 0) {
+                    Text("::Type -> Cluster");
+                }
+                else if (vGrid.at(inspectX, inspectY, inspectZ).material == 1) {
+                    Text("::Type -> Void");
+                }
+                else if (vGrid.at(inspectX, inspectY, inspectZ).material == 2) {
+                    Text("::Type -> Empty");
+                }
+                Text("::Orientation -> %f, %f, %f"
+                    , vGrid.at(inspectX, inspectY, inspectZ).orientation.x
+                    , vGrid.at(inspectX, inspectY, inspectZ).orientation.y
+                    , vGrid.at(inspectX, inspectY, inspectZ).orientation.z);
+        }
+        else {
+            Text("Out of range");
+        }
+
+        // This stuff below is commented out because if you make a large grid,
+        // it'll lag the entire simulation heavily, I opted for creating an input inspection
+        // as shown above
+        
+        //for (int i = 0; i < vGrid.getDimensions().x; i++) {
+        //    for (int j = 0; j < vGrid.getDimensions().y; j++) {
+        //        for (int k = 0; k < vGrid.getDimensions().z; k++) {
+        //            Text("Voxel at: %d, %d, %d :: Type-> %d :: Orientation-> %f, %f, %f", i,j,k 
+        //                ,vGrid.at(i,j,k).material
+        //                ,vGrid.at(i, j, k).orientation.x
+        //                ,vGrid.at(i, j, k).orientation.y
+        //                ,vGrid.at(i, j, k).orientation.z);
+        //        }
+        //    }
+        //}
+    }
 
     Spacing();
     Separator();

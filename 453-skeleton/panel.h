@@ -6,6 +6,8 @@
 
 #include "imgui/imgui.h"
 
+#include "ClusterVoid.h"
+
 namespace panel {
 
 extern bool showPanel;
@@ -30,6 +32,7 @@ extern bool camSpeedChanged;
 extern float camSpeed;
 
 extern int renderPipeline;
+extern VoxelGrid<clusterData> vGrid;
 
 // reset
 extern bool resetView;

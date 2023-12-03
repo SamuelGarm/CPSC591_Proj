@@ -18,10 +18,10 @@ struct clusterData {
 	Material material = Empty;								// Boolean if the voxel / cluster is a void
 };
 
-void setVoidRatio(float ratio);
+glm::vec3 getClusterRatios(VoxelGrid<clusterData>& vGrid);
 
 VoxelGrid<clusterData> setupGrid(int x, int y, int z);
-
+glm::vec3 randOrientation();
 void distributeVoidClusters(VoxelGrid<clusterData>& vGrid);
-void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3 randOrientation);
+void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid);
 glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid);
