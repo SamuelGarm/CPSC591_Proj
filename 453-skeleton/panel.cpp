@@ -95,19 +95,26 @@ void updateMenu() {
         InputInt("Y", &inspectY);
         SameLine;
         InputInt("Z", &inspectZ);
-        Text("Types: 0 -> Cluster, 1 -> Void, 2 -> Empty");
 
         // Range check if the input exists in the voxel grid
         if (inspectX >= 0 && inspectX < vGrid.getDimensions().x &&
             inspectY >= 0 && inspectY < vGrid.getDimensions().y &&
             inspectZ >= 0 && inspectZ < vGrid.getDimensions().z) {
                 //if it exists, display the information about that voxel
-                Text("Voxel at: %d, %d, %d :: Type-> %d :: Orientation-> %f, %f, %f",
-                    inspectX, inspectY, inspectZ
-                    ,vGrid.at(inspectX, inspectY, inspectZ).material
-                    ,vGrid.at(inspectX, inspectY, inspectZ).orientation.x
-                    ,vGrid.at(inspectX, inspectY, inspectZ).orientation.y
-                    ,vGrid.at(inspectX, inspectY, inspectZ).orientation.z);
+                Text("::Voxel Index -> %d, %d, %d", inspectX, inspectY, inspectZ);
+                if (vGrid.at(inspectX, inspectY, inspectZ).material == 0) {
+                    Text("::Type -> Cluster");
+                }
+                else if (vGrid.at(inspectX, inspectY, inspectZ).material == 1) {
+                    Text("::Type -> Void");
+                }
+                else if (vGrid.at(inspectX, inspectY, inspectZ).material == 2) {
+                    Text("::Type -> Empty");
+                }
+                Text("::Orientation -> %f, %f, %f"
+                    , vGrid.at(inspectX, inspectY, inspectZ).orientation.x
+                    , vGrid.at(inspectX, inspectY, inspectZ).orientation.y
+                    , vGrid.at(inspectX, inspectY, inspectZ).orientation.z);
         }
         else {
             Text("Out of range");
