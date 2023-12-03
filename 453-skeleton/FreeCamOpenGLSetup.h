@@ -21,14 +21,16 @@ namespace Graphics {
 	};
 
 	std::vector<RenderData> instancedRenderData;
-	ShaderProgram* voxelShader;;
+	ShaderProgram* orientationShader;
+	ShaderProgram* gratingMaximaShader;
 	GLuint voxels_vertexArray; //stores the state of how to render and interpert that buffer data
 	GLuint voxels_vertexBuffer; //stores the vertex data in a buffer on the GPU
 	GLuint voxels_instanceTransformBuffer; //stores data that is used for each instance of voxels
 
 	void setupOpenGL() {
 		//Rendering variables
-		voxelShader = new ShaderProgram("shaders/voxel.vert", "shaders/voxel.frag");
+		orientationShader = new ShaderProgram("shaders/voxel.vert", "shaders/voxel.frag");
+		gratingMaximaShader = new ShaderProgram("shaders/grating.vert", "shaders/grating.frag");
 		/*
 		* Setup openGL structures for rendering voxel terrain
 		* There are 2 buffers, one for the vertex geometry and the other storing data such as position that is applied to each voxel instance

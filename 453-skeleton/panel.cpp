@@ -23,6 +23,8 @@ float yClipMax = 10;
 float zClipMin = 0;
 float zClipMax = 10;
 
+int renderPipeline = 0;
+
 bool clippingChanged = false;
 bool bgColourChanged = false;
 bool camSpeedChanged = false;
@@ -34,6 +36,7 @@ bool resetView = false;
 void updateMenu() {
   using namespace ImGui;
   float olds[] = { xClipMin , xClipMax, yClipMin, yClipMax, zClipMin, zClipMax };
+  int oldPipeline = 0;
   bool oldCb = useClipping;
 
   ImGui_ImplOpenGL3_NewFrame();
@@ -67,7 +70,9 @@ void updateMenu() {
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
 
-
+    Spacing();
+    const char* items[] = { "Orientation", "grating" };
+    Combo("RenderingPipeline", &renderPipeline, items, 2);
 
     Spacing();
     Separator();

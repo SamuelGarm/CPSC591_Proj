@@ -238,16 +238,23 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		using namespace Graphics;
-		(*voxelShader).use();
 		glBindVertexArray(voxels_vertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
-		GLuint cameraUniform = glGetUniformLocation(GLuint(*voxelShader), "cameraMat");
-		glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
 
-		//GLuint thresholdUniform = glGetUniformLocation(GLuint(voxelShader), "nutrientThreshold");
-		//glUniform1f(thresholdUniform, panel::nutrientThreshold);
+		if (panel::renderPipeline == 0) {
+			(*orientationShader).use();
+			GLuint cameraUniform = glGetUniformLocation(GLuint(*orientationShader), "cameraMat");
+			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
+		}
+		else {
+			(*gratingMaximaShader).use();
+			GLuint cameraUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraMat");
+			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
 
-		//glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::mat4) + sizeof(glm::vec3)) * instancedRenderData.size(), instancedRenderData.data(), GL_DYNAMIC_DRAW);
+			GLuint cameraPosUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraPos");
+			glUniform3fv(cameraPosUniform, 1, glm::value_ptr(a5->camera.getPos()));
+		}
+		
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedRenderData.size());
 
 		if (panel::clippingChanged) {
@@ -274,7 +281,6 @@ int main() {
 			a5->camera.cameraSpeed = panel::camSpeed;
 			panel::camSpeedChanged = false;
 		}
-
 		//a5->outputImage.Render();
 		panel::updateMenu();
 		window.swapBuffers();

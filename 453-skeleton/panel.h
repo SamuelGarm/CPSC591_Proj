@@ -25,8 +25,11 @@ extern bool clippingChanged;
 extern glm::vec3 minClipBounds;
 extern glm::vec3 maxClipBounds;
 
+//camera controls
 extern bool camSpeedChanged;
 extern float camSpeed;
+
+extern int renderPipeline;
 
 // reset
 extern bool resetView;
