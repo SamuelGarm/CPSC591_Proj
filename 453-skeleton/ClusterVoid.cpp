@@ -65,13 +65,14 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 	
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
 	//std::cout << "total number of cells: " << totalNumberOfCells << std::endl;
-
+	srand(time(0));
 	// While the ratio of clusters to total cells is less than the void ratio, keep iterating
 	while (curNumOfClusters / totalNumberOfCells < vGrid.getVoidRatio()) {
 		// selects cells at random 
 		int current_x = glm::linearRand<int>(0, vGrid.getDimensions().x-1);
 		int current_y = glm::linearRand<int>(0, vGrid.getDimensions().y-1);
 		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z-1);
+		std::cout << current_x << "," << current_y << "," << current_z << std::endl;
 		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
 		// sets it as a cluster if it's a void
 		if (currCluster.material == Void) {
