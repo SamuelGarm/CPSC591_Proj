@@ -53,6 +53,9 @@ glm::vec3 VoxelGrid<T>::getDimensions() {
 	return glm::vec3(x_length, y_length, z_length);
 }
 
+// Should actually be called "Set cluster percentage"
+// sets the percentage 0.75 = 75% of how many clusters
+// should be in the grid
 template <class T>
 void VoxelGrid<T>::setVoidRatio(float ratio) {
 	voidRatio = ratio;

@@ -42,6 +42,14 @@ glm::vec3 getClusterRatios(VoxelGrid<clusterData>& vGrid) {
 	return glm::vec3(clusterCount, voidCount, emptyCount);
 }
 
+// Creates a randomized direction vector, and normalizes it
+glm::vec3 randOrientation() {
+	float randOrientation_x = glm::linearRand<float>(0, 360);
+	float randOrientation_y = glm::linearRand<float>(0, 360);
+	float randOrientation_z = glm::linearRand<float>(0, 360);
+	return normalize(glm::vec3(randOrientation_x, randOrientation_y, randOrientation_z));
+}
+
 // The main algorithm to distribute clusters and orient them in the structure based on neighbouring heuristics
 void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 	// Step 1 - initializes every cluster as a void
@@ -70,30 +78,23 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 			curNumOfClusters++;
 		}
 
-		// sets the rotation randomly
-		float randOrientation_x = glm::linearRand<float>(0, 360);
-		float randOrientation_y = glm::linearRand<float>(0, 360);
-		float randOrientation_z = glm::linearRand<float>(0, 360);
-		glm::vec3 randOrientation = glm::vec3(randOrientation_x, randOrientation_y, randOrientation_z);
-		currCluster.orientation = randOrientation;
-
 		// Checks if neighbours orientations, if the average is 0.0 use the random rotation
 		// if neighbours have orientations, uses the average instead
 		glm::vec3 neighbourOrientation = checkNeighbours(current_x, current_y, current_z, vGrid);
 		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-			vGrid.at(current_x, current_y, current_z).orientation = randOrientation;
+			vGrid.at(current_x, current_y, current_z).orientation = randOrientation();
 		}
 		else {
 			vGrid.at(current_x, current_y, current_z).orientation = neighbourOrientation;
 		}
 
-		setNeighbours(current_x, current_y, current_z, vGrid, randOrientation);
+		setNeighbours(current_x, current_y, current_z, vGrid);
 	}
 }
 
 // 6 neighbours - orthogonal relation
 // sets neighbours to clusters, and sets orientation, either to random or averaged or neighbours
-void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3 randOrientation) {
+void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 	glm::vec3 neighbourOrientation;
 
 	if (x - 1 >= 0 && x - 1 < vGrid.getDimensions().x) {
@@ -105,7 +106,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 			neighbourOrientation = checkNeighbours(x - 1, y, z, vGrid);
 			// if the returned vector is 0, use the random orientation of the original cell.
 			if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-				vGrid.at(x - 1, y, z).orientation = randOrientation;
+				vGrid.at(x - 1, y, z).orientation = randOrientation();
 			}
 			// if the returned vector isn't 0, use the averaged neighbour vector
 			else {
@@ -121,7 +122,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 
 			neighbourOrientation = checkNeighbours(x + 1, y, z, vGrid);
 			if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-				vGrid.at(x + 1, y, z).orientation = randOrientation;
+				vGrid.at(x + 1, y, z).orientation = randOrientation();
 			}
 			else {
 				vGrid.at(x + 1, y, z).orientation = neighbourOrientation;
@@ -136,7 +137,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 
 			neighbourOrientation = checkNeighbours(x, y - 1, z, vGrid);
 			if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-				vGrid.at(x, y - 1, z).orientation = randOrientation;
+				vGrid.at(x, y - 1, z).orientation = randOrientation();
 			}
 			else {
 				vGrid.at(x, y - 1, z).orientation = neighbourOrientation;
@@ -151,7 +152,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 
 			neighbourOrientation = checkNeighbours(x, y + 1, z, vGrid);
 			if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-				vGrid.at(x, y + 1, z).orientation = randOrientation;
+				vGrid.at(x, y + 1, z).orientation = randOrientation();
 			}
 			else {
 				vGrid.at(x, y + 1, z).orientation = neighbourOrientation;
@@ -166,7 +167,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 
 			neighbourOrientation = checkNeighbours(x, y, z - 1, vGrid);
 			if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-				vGrid.at(x, y, z - 1).orientation = randOrientation;
+				vGrid.at(x, y, z - 1).orientation = randOrientation();
 			}
 			else {
 				vGrid.at(x, y, z - 1).orientation = neighbourOrientation;
@@ -181,7 +182,7 @@ void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid, glm::vec3
 
 			neighbourOrientation = checkNeighbours(x, y, z + 1, vGrid);
 			if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
-				vGrid.at(x, y, z + 1).orientation = randOrientation;
+				vGrid.at(x, y, z + 1).orientation = randOrientation();
 			}
 			else {
 				vGrid.at(x, y, z + 1).orientation = neighbourOrientation;
