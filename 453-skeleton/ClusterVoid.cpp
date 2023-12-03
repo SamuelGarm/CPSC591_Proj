@@ -290,6 +290,8 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
 			y = y + (b / 2.f) -1;
 			z = z + (c / 2.f) -1;
 
+			// Sometimes values below zero are returned
+			// these values are clamped to 0
 			if (x < 0) x = 0;
 			if (y < 0) y = 0;
 			if (z < 0) z = 0;
@@ -312,70 +314,123 @@ void trimVGrid(VoxelGrid<clusterData>& vGrid) {
 
 	// Iterate through the trim list
 	for (int i = 0; i < trimList.size(); i++) {
-		// If the x value of the entry in the trim list is less than the mid point
-		if (trimList.at(i).x <= ((float) vGrid.getDimensions().x / 2.0)) {
-			// Set all voxels that are less than or equal to the mid point on the x
-			// axis to empty
-			for (int j = trimList.at(i).x; j > 0; j--) {
-				vGrid.at(j, 
-						 (int) trimList.at(i).y, 
-					     (int) trimList.at(i).z)
-						 .material = Empty;
-			}
-		}
-		// Else if the x value is greater than the mid point
-		else if (trimList.at(i).x > ((float) vGrid.getDimensions().x / 2.0)) {
-			// Set all voxels that are greater than the mid point on the x
-			// axis to empty
-			for (int j = trimList.at(i).x; j < vGrid.getDimensions().x; j++) {
-				vGrid.at(j,
-						(int)trimList.at(i).y,
-						(int)trimList.at(i).z)
-						.material = Empty;
+		//// If the x value of the entry in the trim list is less than the mid point
+		//if (trimList.at(i).x <= ((float) vGrid.getDimensions().x / 2.0)) {
+		//	// Set all voxels that are less than or equal to the mid point on the x
+		//	// axis to empty
+		//	for (int j = trimList.at(i).x; j > 0; j--) {
+		//		vGrid.at(j, 
+		//				 (int) trimList.at(i).y, 
+		//			     (int) trimList.at(i).z)
+		//				 .material = Empty;
+		//	}
+		//}
+		//// Else if the x value is greater than the mid point
+		//else if (trimList.at(i).x > ((float) vGrid.getDimensions().x / 2.0)) {
+		//	// Set all voxels that are greater than the mid point on the x
+		//	// axis to empty
+		//	for (int j = trimList.at(i).x; j < vGrid.getDimensions().x; j++) {
+		//		vGrid.at(j,
+		//				(int)trimList.at(i).y,
+		//				(int)trimList.at(i).z)
+		//				.material = Empty;
+		//	}
+		//}
+
+		//if (trimList.at(i).y <= ((float) vGrid.getDimensions().y / 2.0)) {
+		//	// Set all voxels that are less than or equal to the mid point on the y
+		//	// axis to empty
+		//	for (int j = trimList.at(i).y; j > 0; j--) {
+		//		vGrid.at((int)trimList.at(i).x,
+		//			j,
+		//			(int)trimList.at(i).z)
+		//			.material = Empty;
+		//	}
+		//}
+		//// Else if the x value is greater than the mid point
+		//else if (trimList.at(i).y > ((float) vGrid.getDimensions().y / 2.0)) {
+		//	// Set all voxels that are greater than the mid point on the x
+		//	// axis to empty
+		//	for (int j = trimList.at(i).y; j < vGrid.getDimensions().y; j++) {
+		//		vGrid.at((int)trimList.at(i).x,
+		//			j,
+		//			(int)trimList.at(i).z)
+		//			.material = Empty;
+		//	}
+		//}
+
+		//if (trimList.at(i).z <= ((float) vGrid.getDimensions().z / 2.0)) {
+		//	// Set all voxels that are less than or equal to the mid point on the z
+		//	// axis to empty
+		//	for (int j = trimList.at(i).z; j > 0; j--) {
+		//		vGrid.at((int)trimList.at(i).x,
+		//			(int)trimList.at(i).y,
+		//			j)
+		//			.material = Empty;
+		//	}
+		//}
+		//// Else if the x value is greater than the mid point
+		//else if (trimList.at(i).z > ((float) vGrid.getDimensions().z / 2.0)) {
+		//	// Set all voxels that are greater than the mid point on the x
+		//	// axis to empty
+		//	for (int j = trimList.at(i).z; j < vGrid.getDimensions().z; j++) {
+		//		vGrid.at((int)trimList.at(i).x,
+		//			(int)trimList.at(i).y,
+		//			j)
+		//			.material = Empty;
+		//	}
+		//}
+
+
+		// If the entries for x and y in the trim list are below the halfway point
+		// remove all voxels on the x axis from 0 to the trim point
+		// remove all voxels on the y axis from 0 to the trim point
+		if (trimList.at(i).x < ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y < ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = 0; x < trimList.at(i).x; x++) {
+				for (int y = 0; y < trimList.at(i).y; y++) {
+					vGrid.at(x, y, (int)trimList.at(i).z).material = Empty;
+				}
 			}
 		}
 
-		if (trimList.at(i).y <= ((float) vGrid.getDimensions().y / 2.0)) {
-			// Set all voxels that are less than or equal to the mid point on the y
-			// axis to empty
-			for (int j = trimList.at(i).y; j > 0; j--) {
-				vGrid.at((int)trimList.at(i).x,
-					j,
-					(int)trimList.at(i).z)
-					.material = Empty;
-			}
-		}
-		// Else if the x value is greater than the mid point
-		else if (trimList.at(i).y > ((float) vGrid.getDimensions().y / 2.0)) {
-			// Set all voxels that are greater than the mid point on the x
-			// axis to empty
-			for (int j = trimList.at(i).y; j < vGrid.getDimensions().y; j++) {
-				vGrid.at((int)trimList.at(i).x,
-					j,
-					(int)trimList.at(i).z)
-					.material = Empty;
+		// If the entry for x is below the halfway point, and the entry for y is above the halfway point
+		// remove all voxels on the x axis from 0 to the trim point
+		// remove all voxels on the y axis from the trim point to max
+		if (trimList.at(i).x < ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y >= ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = 0; x < trimList.at(i).x; x++) {
+				for (int y = trimList.at(i).y; y < vGrid.getDimensions().y; y++) {
+					vGrid.at(x, y, (int)trimList.at(i).z).material = Empty;
+				}
 			}
 		}
 
-		if (trimList.at(i).z <= ((float) vGrid.getDimensions().z / 2.0)) {
-			// Set all voxels that are less than or equal to the mid point on the z
-			// axis to empty
-			for (int j = trimList.at(i).z; j > 0; j--) {
-				vGrid.at((int)trimList.at(i).x,
-					(int)trimList.at(i).y,
-					j)
-					.material = Empty;
+		// If the entry for x is above the halfway point, and entry for y is below the halfway point
+		// remove all voxels on the x axis from the trim point to max
+		// remove all voxels on the y axis from 0 to the trim point
+		if (trimList.at(i).x >= ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y < ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = trimList.at(i).x; x < vGrid.getDimensions().x; x++) {
+				for (int y = 0; y < trimList.at(i).y; y++) {
+					vGrid.at(x, y, (int)trimList.at(i).z).material = Empty;
+				}
 			}
 		}
-		// Else if the x value is greater than the mid point
-		else if (trimList.at(i).z > ((float) vGrid.getDimensions().z / 2.0)) {
-			// Set all voxels that are greater than the mid point on the x
-			// axis to empty
-			for (int j = trimList.at(i).z; j < vGrid.getDimensions().z; j++) {
-				vGrid.at((int)trimList.at(i).x,
-					(int)trimList.at(i).y,
-					j)
-					.material = Empty;
+
+		// If the entries for x and y are above the halfway point
+		// remove all voxels on the x axis from the trim point to max
+		// remove all voxels on the y axis from the trim point to max
+		if (trimList.at(i).x >= ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y >= ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = trimList.at(i).x; x < vGrid.getDimensions().x; x++) {
+				for (int y = trimList.at(i).y; y < vGrid.getDimensions().y; y++) {
+					vGrid.at(x, y, (int)trimList.at(i).z).material = Empty;
+				}
 			}
 		}
 
