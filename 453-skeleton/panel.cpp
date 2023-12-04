@@ -39,6 +39,14 @@ bool pipelineChanged = false;
 float camSpeed = 0.3f;
 
 extern VoxelGrid<clusterData> vGrid = setupGrid(0,0,0);
+//extern int xSize = vGrid.getDimensions().x;
+//extern int ySize = vGrid.getDimensions().y;
+//extern int zSize = vGrid.getDimensions().z;
+extern int xSize = 0;
+extern int ySize = 0;
+extern int zSize = 0;
+extern float clusterPercentage = 0.75f;
+extern int clusterMode = 0;
 
 // Variables to index inspections
 int inspectX = 0;
@@ -101,9 +109,38 @@ void updateMenu() {
       SliderFloat("Particle Diameter (Å)", &particleDiameter, 1500, 4000);
     }
 
+
     Spacing();
     const char* items[] = { "Orientation", "grating" };
     Combo("RenderingPipeline", &renderPipeline, items, 2);
+
+    Spacing();
+    const char* clustGenNames[] = {"Linear Random","Exp Radius"};
+    if (CollapsingHeader("Cluster Control")) {
+        Text("Size: ");
+        InputInt("X", &xSize);
+        InputInt("Y", &ySize);
+        InputInt("Z", &zSize);
+        InputFloat("Cluster Percentage", &clusterPercentage);
+        if (Button("Generate")) {
+            //vGrid.~VoxelGrid();
+            //vGrid = setupGrid(xSize, ySize, zSize);
+            setAllVoid(vGrid);
+            vGrid.setVoidRatio(clusterPercentage);
+            if (clusterMode == 0) {
+                distributeVoidClusters(vGrid);
+            }
+            else if (clusterMode == 1) {
+                distributeVoidClusterV2(vGrid);
+            }
+            trimVGrid(vGrid);
+            pipelineChanged = true;
+        }
+        Text("Cluster Generation Type: ");
+        RadioButton(clustGenNames[0], &clusterMode, 0); ImGui::SameLine();
+        RadioButton(clustGenNames[1], &clusterMode, 1); 
+    }
+
     Spacing();
     if (CollapsingHeader("Cluster Info")) {
         Text("Size: x:%0.f, y:%0.f, z:%0.f", vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z);

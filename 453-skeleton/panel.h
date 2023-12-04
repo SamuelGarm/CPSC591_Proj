@@ -42,6 +42,11 @@ extern float camSpeed;
 extern int renderPipeline;
 extern bool pipelineChanged;
 extern VoxelGrid<clusterData> vGrid;
+extern int xSize;
+extern int ySize;
+extern int zSize;
+extern float clusterPercentage;
+extern int clusterMode;
 
 // reset
 extern bool resetView;

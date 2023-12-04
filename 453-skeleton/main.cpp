@@ -184,6 +184,9 @@ int main() {
 
 	// Sends the vGrid to the panel to display info
 	panel::vGrid = vGrid;
+	panel::xSize = vGrid.getDimensions().x;
+	panel::ySize = vGrid.getDimensions().y;
+	panel::zSize = vGrid.getDimensions().z;
 
 	ImGuiIO& io = ImGui::GetIO();
 	Graphics::clippingPlanes* clip = nullptr;
