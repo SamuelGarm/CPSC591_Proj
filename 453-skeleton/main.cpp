@@ -247,7 +247,7 @@ int main() {
 			glUniform3fv(cameraPosUniform, 1, glm::value_ptr(a5->camera.getPos()));
 
 			GLuint lightDirUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "lightPos");
-			glUniform3fv(lightDirUniform, 1, glm::value_ptr(glm::normalize(panel::lightPos)));
+			glUniform3fv(lightDirUniform, 1, glm::value_ptr(panel::lightPos));
 
 			GLuint kdUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "kd");
 			glUniform1f(kdUniform, panel::kd);
@@ -257,6 +257,9 @@ int main() {
 
 			GLuint kaUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "ka");
 			glUniform1f(kaUniform, panel::ka);
+
+			GLuint dUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "d");
+			glUniform1f(dUniform, panel::d);
 
 			GLuint bodyColUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "in_bodyCol");
 			glUniform1f(bodyColUniform, panel::bodyCol);

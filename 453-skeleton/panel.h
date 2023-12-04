@@ -32,6 +32,7 @@ extern float ks;
 extern float kd;
 extern float ka;
 extern float bodyCol;
+extern float d;
 extern float particleDiameter;
 extern bool useSanders;
 

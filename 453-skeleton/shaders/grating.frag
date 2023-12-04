@@ -14,6 +14,7 @@ uniform vec3 in_center;
 uniform float kd;
 uniform float ks;
 uniform float ka;
+uniform float d;
 
 uniform float in_bodyCol;
 uniform float particle_diameter;
@@ -79,7 +80,7 @@ void main() {
     vec3 ambiant = ks * vec3(1);
     if(vert_mat == 0) {
         //render the void
-        vec3 col = stoneColor * (diffuse + specular + ks);
+        vec3 col = stoneColor * (diffuse + specular + ambiant);
         out_color = vec4(col, 1);
     } else {
         //render the cluster
@@ -87,7 +88,7 @@ void main() {
 	    //color = vec4(vertCol, 1);//vec4(max(0, dot(norm, lightDir)) * vertCol, vertAlpha);
 	    float camAngle = acos(dot(cameraDir, norm));
         float lightAngle = acos(dot(lightDir, norm));
-	    float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*particle_diameter)/1.f;
+	    float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*d)/1.f;
         wavelength = max(wavelength,0.f);
 
         float maxWavelength = 750;
@@ -118,7 +119,8 @@ void main() {
         }
 
         
-	    out_color = vec4(col,1);
+        vec3 phong_col = col * (diffuse + specular + ambiant);
+	    out_color = vec4(col + phong_col,1);
     }
 
 }
