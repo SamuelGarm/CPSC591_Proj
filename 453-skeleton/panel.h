@@ -47,6 +47,8 @@ extern int ySize;
 extern int zSize;
 extern float clusterPercentage;
 extern int clusterMode;
+extern float meanRadius;
+extern bool sampleNeighbours;
 
 // reset
 extern bool resetView;

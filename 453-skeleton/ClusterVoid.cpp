@@ -74,7 +74,7 @@ void setAllVoid(VoxelGrid<clusterData>& vGrid) {
 }
 
 // The main algorithm to distribute clusters and orient them in the structure based on neighbouring heuristics
-void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
+void distributeVoidClusters(VoxelGrid<clusterData>& vGrid, bool sampleNeighbours) {
 	setAllVoid(vGrid);
 
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
@@ -97,7 +97,11 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 
 		// Checks if neighbours orientations, if the average is 0.0 use the random rotation
 		// if neighbours have orientations, uses the average instead
-		glm::vec3 neighbourOrientation = checkNeighbours(current_x, current_y, current_z, vGrid);
+		glm::vec3 neighbourOrientation = glm::vec3(0);
+		if (sampleNeighbours) {
+			neighbourOrientation = checkNeighbours(current_x, current_y, current_z, vGrid);
+		}
+		
 		if (neighbourOrientation.x <= 0.0 && neighbourOrientation.y <= 0.0 && neighbourOrientation.z <= 0.0) {
 			vGrid.at(current_x, current_y, current_z).orientation = randOrientation();
 		}
@@ -105,7 +109,7 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 			vGrid.at(current_x, current_y, current_z).orientation = neighbourOrientation;
 		}
 
-		setNeighbours(current_x, current_y, current_z, vGrid);
+		if (sampleNeighbours) setNeighbours(current_x, current_y, current_z, vGrid);
 	}
 }
 
@@ -262,7 +266,9 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 	return averagedOrientation;
 }
 
-void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid) {
+// Distributes clusters in spheroids with radius based on an exponential distribution
+// function derived from a mean radius
+void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius) {
 	setAllVoid(vGrid);
 
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
@@ -278,7 +284,7 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid) {
 		//std::cout << current_x << "," << current_y << "," << current_z << std::endl;
 		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
 		glm::vec3 rOrientation = randOrientation();
-		int randRadius = exponential_random(3.f);
+		int randRadius = exponential_random(meanRadius);
 
 		// Get a list of surface points on a paramaterized sphere
 		std::vector<glm::vec3> fillList = sphereParameterization(randRadius);

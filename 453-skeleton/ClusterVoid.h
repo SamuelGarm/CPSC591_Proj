@@ -24,8 +24,8 @@ VoxelGrid<clusterData> setupGrid(int x, int y, int z);
 glm::vec3 randOrientation();
 float exponential_random(float mean);
 void setAllVoid(VoxelGrid<clusterData>& vGrid);
-void distributeVoidClusters(VoxelGrid<clusterData>& vGrid);
-void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid);
+void distributeVoidClusters(VoxelGrid<clusterData>& vGrid, bool sampleNeighbours);
+void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius);
 void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid);
 glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid);
 

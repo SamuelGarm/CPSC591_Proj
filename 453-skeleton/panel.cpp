@@ -47,6 +47,8 @@ extern int ySize = 0;
 extern int zSize = 0;
 extern float clusterPercentage = 0.75f;
 extern int clusterMode = 0;
+extern float meanRadius = 3.f;
+extern bool sampleNeighbours = true;
 
 // Variables to index inspections
 int inspectX = 0;
@@ -128,17 +130,21 @@ void updateMenu() {
             setAllVoid(vGrid);
             vGrid.setVoidRatio(clusterPercentage);
             if (clusterMode == 0) {
-                distributeVoidClusters(vGrid);
+                distributeVoidClusters(vGrid, sampleNeighbours);
             }
             else if (clusterMode == 1) {
-                distributeVoidClusterV2(vGrid);
+                distributeVoidClusterV2(vGrid, meanRadius);
             }
             trimVGrid(vGrid);
             pipelineChanged = true;
         }
         Text("Cluster Generation Type: ");
         RadioButton(clustGenNames[0], &clusterMode, 0); ImGui::SameLine();
-        RadioButton(clustGenNames[1], &clusterMode, 1); 
+        RadioButton(clustGenNames[1], &clusterMode, 1);
+        if (clusterMode == 1) {
+            InputFloat("Mean Radius", &meanRadius);
+        }
+        Checkbox("Sample Neighbours", &sampleNeighbours);
     }
 
     Spacing();
