@@ -25,3 +25,7 @@ glm::vec3 randOrientation();
 void distributeVoidClusters(VoxelGrid<clusterData>& vGrid);
 void setNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid);
 glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid);
+
+std::vector<glm::vec3> ellipsoid(float a, float b, float c);
+glm::vec3 postProcessVec(glm::vec3 vec, float a, float b, float c);
+void trimVGrid(VoxelGrid<clusterData>& vGrid);

@@ -65,13 +65,14 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 	
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
 	//std::cout << "total number of cells: " << totalNumberOfCells << std::endl;
-
+	srand(time(0));
 	// While the ratio of clusters to total cells is less than the void ratio, keep iterating
 	while (curNumOfClusters / totalNumberOfCells < vGrid.getVoidRatio()) {
 		// selects cells at random 
 		int current_x = glm::linearRand<int>(0, vGrid.getDimensions().x-1);
 		int current_y = glm::linearRand<int>(0, vGrid.getDimensions().y-1);
 		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z-1);
+		std::cout << current_x << "," << current_y << "," << current_z << std::endl;
 		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
 		// sets it as a cluster if it's a void
 		if (currCluster.material == Void) {
@@ -243,10 +244,149 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 		//averagedOrientation = normalize(averagedOrientation / (float) orientations.size());
 		averagedOrientation = averagedOrientation / (float)orientations.size();
 	}
-
-
-
 	return averagedOrientation;
 }
 
+// Input a, b, c are the xyz dimensions of a 'rectangle'
+// uses these dimensions to find the 'radius' of each axis (divide by 2)
+// then uses parametric ellispoid equation to iterate through the u and v 
+// directions on a parametric surface
+// https://mathworld.wolfram.com/Ellipsoid.html
+std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
+	int uLength = 500;
+	int vLength = 500;
+	float x, y, z;
 
+	//float lowestX = 0;
+	//float highestX = 0;
+	//float lowestY = 0;
+	//float highestY = 0;
+	//float lowestZ = 0;
+	//float highestZ = 0;
+
+	std::vector<glm::vec3> coords;
+
+	// This parametric surface is working as if the origin is at (0,0,0)
+	// you will need to add (a/2.f) to x to shift of the origin over by the radius
+	// need to do this for every axis to allign it to the voxel grid
+	for (int u = 0; u < uLength; u++) {
+		for (int v = 0; v < vLength; v++) {
+			x = (a / 2.f) * cos(u) * sin(v);
+			y = (b / 2.f) * sin(u) * sin(v);
+			z = (c / 2.f) * cos(v);
+
+			//if (x > highestX) highestX = x;
+			//if (x < lowestX) lowestX = x;
+			//if (y > highestY) highestY = y;
+			//if (y < lowestY) lowestY = y;
+			//if (z > highestZ) highestZ = z;
+			//if (z < lowestZ) lowestZ = z;
+
+			//printf("parametric ellispoid: %.f, %.f, %.f \n", x, y, z);
+
+			// Calls a post-processing step to clamp values to the voxel rectangle range
+			coords.push_back(postProcessVec(glm::vec3(x,y,z),a,b,c));
+		}
+	}
+	//std::cout << "highest x: " << highestX << std::endl;
+	//std::cout << "lowest x: " << lowestX << std::endl;
+	//std::cout << "highest y: " << highestY << std::endl;
+	//std::cout << "lowest y: " << lowestY << std::endl;
+	//std::cout << "highest z: " << highestZ << std::endl;
+	//std::cout << "lowest z: " << lowestZ << std::endl;
+
+	return coords;
+}
+
+// Post process function to clamp given values to the voxel elipsoid
+// input parameters are voxel rectangle dimensions
+glm::vec3 postProcessVec(glm::vec3 vec, float a, float b, float c) {
+	float x = vec.x;
+	float y = vec.y;
+	float z = vec.z;
+
+	// Offsets to put the parametric ellipsoid center
+	// in the centre of the voxel rectangle
+	// -1 to keep it in the index range of voxels
+	x = x + (a / 2.f) - 1;
+	y = y + (b / 2.f) - 1;
+	z = z + (c / 2.f) - 1;
+
+	// Sometimes values below zero are returned
+	// these values are clamped to 0
+	if (x < 0) x = 0;
+	if (y < 0) y = 0;
+	if (z < 0) z = 0;
+
+	// Sometimes values are beyond the max range
+	// if this happens clamp to max range
+	if (x > a) x = a-1;
+	if (y > b) y = b-1;
+	if (z > c) z = c-1;
+
+	return glm::vec3(x, y, z);
+}
+
+void trimVGrid(VoxelGrid<clusterData>& vGrid) {
+	auto trimList = ellipsoid(vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z);
+
+	// Iterate through the trim list one z plane at a time
+	for (int i = 0; i < trimList.size(); i++) {
+
+		int z = ceil(trimList.at(i).z);
+		if (z > vGrid.getDimensions().z) z = vGrid.getDimensions().z - 1;
+
+		// If the entries for x and y in the trim list are below the halfway point
+		// remove all voxels on the x axis from 0 to the trim point
+		// remove all voxels on the y axis from 0 to the trim point
+		if (trimList.at(i).x < ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y < ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = 0; x < trimList.at(i).x; x++) {
+				for (int y = 0; y < trimList.at(i).y; y++) {
+					vGrid.at(x, y, z).material = Empty;
+				}
+			}
+		}
+
+		// If the entry for x is below the halfway point, and the entry for y is above the halfway point
+		// remove all voxels on the x axis from 0 to the trim point
+		// remove all voxels on the y axis from the trim point to max
+		if (trimList.at(i).x < ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y >= ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = 0; x < trimList.at(i).x; x++) {
+				for (int y = trimList.at(i).y; y < vGrid.getDimensions().y; y++) {
+					vGrid.at(x, y, z).material = Empty;
+				}
+			}
+		}
+
+		// If the entry for x is above the halfway point, and entry for y is below the halfway point
+		// remove all voxels on the x axis from the trim point to max
+		// remove all voxels on the y axis from 0 to the trim point
+		if (trimList.at(i).x >= ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y < ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = trimList.at(i).x; x < vGrid.getDimensions().x; x++) {
+				for (int y = 0; y < trimList.at(i).y; y++) {
+					vGrid.at(x, y, z).material = Empty;
+				}
+			}
+		}
+
+		// If the entries for x and y are above the halfway point
+		// remove all voxels on the x axis from the trim point to max
+		// remove all voxels on the y axis from the trim point to max
+		if (trimList.at(i).x >= ((float)vGrid.getDimensions().x / 2.0) &&
+			trimList.at(i).y >= ((float)vGrid.getDimensions().y / 2.0)) {
+
+			for (int x = trimList.at(i).x; x < vGrid.getDimensions().x; x++) {
+				for (int y = trimList.at(i).y; y < vGrid.getDimensions().y; y++) {
+					vGrid.at(x, y, z).material = Empty;
+				}
+			}
+		}
+
+	}
+}
