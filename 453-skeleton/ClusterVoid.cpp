@@ -309,7 +309,7 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid) {
 			// if the current sampel point is greater than the radius
 			else if (x >= current_x) {
 				// fill all voxels on that row to the middle
-				for (int j = x; j > current_x; j--) {
+				for (int j = x; j >= current_x; j--) {
 					// if the voxel being filled is within the range
 					if (j >= 0 && j < vGrid.getDimensions().x &&
 						y >= 0 && y < vGrid.getDimensions().y &&
