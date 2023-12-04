@@ -29,6 +29,7 @@ float ks = 0.3;
 float kd = 0.4;
 float ka = 0.2;
 float bodyCol = 0.7;
+float d = 700.f;
 float particleDiameter = 1500; //measured in Å
 bool useSanders = false;
 
@@ -98,15 +99,18 @@ void updateMenu() {
       DragFloat3("Light Pos", (float*)&lightPos);
 
       Spacing();
-      SliderFloat("kd", &kd, 0, 10);
-      SliderFloat("ks", &ks, 0, 10);
-      SliderFloat("ka", &ka, 0, 10);
+      SliderFloat("kd", &kd, 0, 1);
+      SliderFloat("ks", &ks, 0, 1);
+      SliderFloat("ka", &ka, 0, 1);
+
+      Spacing();
+      SliderFloat("Grating spacing", &d, 400, 4000);
 
       Spacing();
       SliderFloat("Body color (black to white)", &bodyCol, 0, 1);
 
       Checkbox("Use Sanders", &useSanders);
-      SliderFloat("Particle Diameter (Å)", &particleDiameter, 1500, 4000);
+      SliderFloat("Particle Diameter (Å) (usually 1500-4000)", &particleDiameter, 1500, 4000); // 1500 - 4000
     }
 
 
