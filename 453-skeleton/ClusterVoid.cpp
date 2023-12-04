@@ -1,4 +1,5 @@
 #include "ClusterVoid.h"
+#include <random>
 
 float curNumOfClusters = 0.0f; // used for void ratio calculations
 
@@ -51,9 +52,16 @@ glm::vec3 randOrientation() {
 	return glm::vec3(randOrientation_x, randOrientation_y, randOrientation_z);
 }
 
-// The main algorithm to distribute clusters and orient them in the structure based on neighbouring heuristics
-void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
-	// Step 1 - initializes every cluster as a void
+// From chat GPT on how to get an exponential distribution
+// the mean input is the average ?
+float exponential_random(float mean) {
+	std::random_device rd;
+	std::default_random_engine generator(rd());
+	std::exponential_distribution<float> distribution(1.f / mean);
+	return distribution(generator);
+}
+
+void setAllVoid(VoxelGrid<clusterData>& vGrid) {
 	for (int i = 0; i < vGrid.getDimensions().x; i++) {
 		for (int j = 0; j < vGrid.getDimensions().y; j++) {
 			for (int k = 0; k < vGrid.getDimensions().z; k++) {
@@ -62,7 +70,13 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 			}
 		}
 	}
-	
+	curNumOfClusters = 0;
+}
+
+// The main algorithm to distribute clusters and orient them in the structure based on neighbouring heuristics
+void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
+	setAllVoid(vGrid);
+
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
 	//std::cout << "total number of cells: " << totalNumberOfCells << std::endl;
 	srand(time(0));
@@ -248,6 +262,70 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 	return averagedOrientation;
 }
 
+void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid) {
+	setAllVoid(vGrid);
+
+	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
+	//std::cout << "total number of cells: " << totalNumberOfCells << std::endl;
+	srand(time(0));
+
+	// While the ratio of clusters to total cells is less than the void ratio, keep iterating
+	while (curNumOfClusters / totalNumberOfCells < vGrid.getVoidRatio()) {
+		// selects cells at random 
+		int current_x = glm::linearRand<int>(0, vGrid.getDimensions().x - 1);
+		int current_y = glm::linearRand<int>(0, vGrid.getDimensions().y - 1);
+		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z - 1);
+		//std::cout << current_x << "," << current_y << "," << current_z << std::endl;
+		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
+		glm::vec3 rOrientation = randOrientation();
+		int randRadius = exponential_random(3.f);
+
+		// Get a list of surface points on a paramaterized sphere
+		std::vector<glm::vec3> fillList = sphereParameterization(randRadius);
+
+		// Iterate through the surface points list
+		for (int i = 0; i < fillList.size(); i++) {
+			float x = fillList.at(i).x + current_x;
+			float y = fillList.at(i).y + current_y;
+			float z = fillList.at(i).z + current_z;
+
+			// if the current sample point is less than the radius
+			if (x < current_x) {
+				// fill all voxels on that row to the middle
+				for (int j = x; j < current_x; j++) {
+					// if the voxel being filled is within the range
+					if (j >= 0 && j < vGrid.getDimensions().x &&
+						y >= 0 && y < vGrid.getDimensions().y &&
+						z >= 0 && z < vGrid.getDimensions().z) {
+							if (vGrid.at(j, y, z).material != Cluster) {
+								vGrid.at(j, y, z).material = Cluster;
+								vGrid.at(j, y, z).orientation = rOrientation;
+								curNumOfClusters++;
+							}
+							
+					}
+				}
+			}
+			// if the current sampel point is greater than the radius
+			else if (x >= current_x) {
+				// fill all voxels on that row to the middle
+				for (int j = x; j > current_x; j--) {
+					// if the voxel being filled is within the range
+					if (j >= 0 && j < vGrid.getDimensions().x &&
+						y >= 0 && y < vGrid.getDimensions().y &&
+						z >= 0 && z < vGrid.getDimensions().z) {
+							if (vGrid.at(j, y, z).material != Cluster) {
+								vGrid.at(j, y, z).material = Cluster;
+								vGrid.at(j, y, z).orientation = rOrientation;
+								curNumOfClusters++;
+							}
+					}
+				}
+			}
+		} 
+	}
+}
+
 // Input a, b, c are the xyz dimensions of a 'rectangle'
 // uses these dimensions to find the 'radius' of each axis (divide by 2)
 // then uses parametric ellispoid equation to iterate through the u and v 
@@ -296,6 +374,26 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
 	//std::cout << "highest z: " << highestZ << std::endl;
 	//std::cout << "lowest z: " << lowestZ << std::endl;
 
+	return coords;
+}
+
+//https://www.wolframalpha.com/input/?i=parametrization+of+a+sphere
+std::vector<glm::vec3> sphereParameterization(float radius) {
+	int uLength = 250;
+	int vLength = 250;
+	float x, y, z;
+
+	std::vector<glm::vec3> coords;
+
+	for (int u = 0; u < uLength; u++) {
+		for (int v = 0; v < vLength; v++) {
+			x = radius * cos(u) * sin(v);
+			y = radius * sin(u) * sin(v);
+			z = radius * cos(v);
+
+			coords.push_back(glm::vec3(x, y, z));
+		}
+	}
 	return coords;
 }
 
