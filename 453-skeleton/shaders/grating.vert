@@ -9,6 +9,8 @@ layout (location = 7) in int material;
 
 uniform mat4 cameraMat;
 
+uniform vec3 in_center;
+
 out vec3 norm;
 out vec3 cube_norm;
 out vec3 FragPos;
@@ -53,8 +55,9 @@ void main() {
         newOrient.z = newOrient.z > 45.f ? newOrient.z - 90.f : newOrient.z;
     }
     newOrient *= 3.14/180.f; //convert to rads
-    mat3 rotation = eulerToMatrix(newOrient);
-	norm = rotation * in_norm;
+    mat4 rotation = mat4(eulerToMatrix(newOrient));
+	//norm = rotation * in_norm;
+    norm = mat3(transpose(inverse(rotation))) * normalize(in_pos - in_center);
 	FragPos = vec3(instanceMatrix * vec4(in_pos, 1.0));
 	gl_Position = cameraMat * instanceMatrix * vec4(in_pos, 1.0);
 	out_orientation = orientation;

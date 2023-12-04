@@ -27,10 +27,13 @@ extern bool clippingChanged;
 extern glm::vec3 minClipBounds;
 extern glm::vec3 maxClipBounds;
 
-extern glm::vec3 lightDir;
+extern glm::vec3 lightPos;
 extern float ks;
 extern float kd;
 extern float ka;
+extern float bodyCol;
+extern float particleDiameter;
+extern bool useSanders;
 
 //camera controls
 extern bool camSpeedChanged;

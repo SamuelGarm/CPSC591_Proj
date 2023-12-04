@@ -72,7 +72,7 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 		int current_x = glm::linearRand<int>(0, vGrid.getDimensions().x-1);
 		int current_y = glm::linearRand<int>(0, vGrid.getDimensions().y-1);
 		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z-1);
-		std::cout << current_x << "," << current_y << "," << current_z << std::endl;
+		//std::cout << current_x << "," << current_y << "," << current_z << std::endl;
 		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
 		// sets it as a cluster if it's a void
 		if (currCluster.material == Void) {

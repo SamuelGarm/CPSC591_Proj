@@ -191,6 +191,8 @@ int main() {
 	panel::yClipMax = voxelGridSize.y;
 	panel::zClipMax = voxelGridSize.z;
 
+	glm::vec3 opalCenter = voxelGridSize / 2.f;
+
 	double accumulator = 0.0; // The accumulator for the remaining time
 	auto previous_time = std::chrono::steady_clock::now(); // The time of the previous update
 	double frameTime = 1.f;
@@ -241,7 +243,7 @@ int main() {
 			glUniform3fv(cameraPosUniform, 1, glm::value_ptr(a5->camera.getPos()));
 
 			GLuint lightDirUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "lightPos");
-			glUniform3fv(lightDirUniform, 1, glm::value_ptr(glm::normalize(panel::lightDir)));
+			glUniform3fv(lightDirUniform, 1, glm::value_ptr(glm::normalize(panel::lightPos)));
 
 			GLuint kdUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "kd");
 			glUniform1f(kdUniform, panel::kd);
@@ -251,6 +253,19 @@ int main() {
 
 			GLuint kaUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "ka");
 			glUniform1f(kaUniform, panel::ka);
+
+			GLuint bodyColUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "in_bodyCol");
+			glUniform1f(bodyColUniform, panel::bodyCol);
+
+			GLuint centerUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "in_center");
+			glUniform3fv(centerUniform, 1, glm::value_ptr(opalCenter)); 
+
+			GLuint partDiamUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "particle_diameter");
+			glUniform1f(partDiamUniform, panel::particleDiameter);
+			
+			GLuint flagsUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "flags");
+			int flag = panel::useSanders ? 1 : 0;
+			glUniform1i(flagsUniform, flag);
 		}
 		
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());

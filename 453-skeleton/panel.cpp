@@ -24,10 +24,13 @@ float zClipMin = 0;
 float zClipMax = 10;
 
 int renderPipeline = 0;
-glm::vec3 lightDir = glm::vec3(0, 0, 1);
+glm::vec3 lightPos = glm::vec3(0, 0, 1);
 float ks = 0.3;
 float kd = 0.4;
 float ka = 0.2;
+float bodyCol = 0.7;
+float particleDiameter = 1500; //measured in Å
+bool useSanders = false;
 
 bool clippingChanged = false;
 bool bgColourChanged = false;
@@ -81,13 +84,21 @@ void updateMenu() {
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
 
-    Spacing();
-    DragFloat3("Light Dir", (float*)&lightDir);
+    if (CollapsingHeader("Grating Rendering Settings")) {
+      Spacing();
+      DragFloat3("Light Pos", (float*)&lightPos);
 
-    Spacing();
-    SliderFloat("kd", &kd, 0, 10);
-    SliderFloat("ks", &ks, 0, 10);
-    SliderFloat("ka", &ka, 0, 10);
+      Spacing();
+      SliderFloat("kd", &kd, 0, 10);
+      SliderFloat("ks", &ks, 0, 10);
+      SliderFloat("ka", &ka, 0, 10);
+
+      Spacing();
+      SliderFloat("Body color (black to white)", &bodyCol, 0, 1);
+
+      Checkbox("Use Sanders", &useSanders);
+      SliderFloat("Particle Diameter (Å)", &particleDiameter, 1500, 4000);
+    }
 
     Spacing();
     const char* items[] = { "Orientation", "grating" };

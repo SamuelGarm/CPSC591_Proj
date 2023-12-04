@@ -9,10 +9,16 @@ flat in int vert_mat;
 
 uniform vec3 cameraPos;
 uniform vec3 lightPos;
+uniform vec3 in_center;
 
 uniform float kd;
 uniform float ks;
 uniform float ka;
+
+uniform float in_bodyCol;
+uniform float particle_diameter;
+
+uniform int flags;
 
 vec3 wavelengthToRGB(float wavelength)
 {
@@ -62,13 +68,14 @@ vec3 wavelengthToRGB(float wavelength)
 }
 
 void main() {
+    vec3 geometricNorm = normalize(FragPos - in_center); //vector from center of opal to voxel, used for shading 
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 cameraDir = normalize(cameraPos - FragPos);
-    vec3 bodyCol = vec3(0.74);
+    vec3 bodyCol = vec3(in_bodyCol);
     vec3 stoneColor = vec3(0.54);
     //phong is calculated using the cube norm not the cluster norm
-    vec3 diffuse = max(kd * dot(cube_norm, lightDir), 0) * vec3(1);
-    vec3 specular = max(ks * pow(dot(reflect(lightDir, cube_norm), cameraDir), 32), 0) * vec3(1);
+    vec3 diffuse = max(kd * dot(geometricNorm, lightDir), 0) * vec3(1);
+    vec3 specular = max(ks * pow(dot(reflect(lightDir, geometricNorm), cameraDir), 32), 0) * vec3(1);
     vec3 ambiant = ks * vec3(1);
     if(vert_mat == 0) {
         //render the void
@@ -80,12 +87,19 @@ void main() {
 	    //color = vec4(vertCol, 1);//vec4(max(0, dot(norm, lightDir)) * vertCol, vertAlpha);
 	    float camAngle = acos(dot(cameraDir, norm));
         float lightAngle = acos(dot(lightDir, norm));
-	    float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*1400.f)/1.f;
+	    float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*particle_diameter)/1.f;
         wavelength = max(wavelength,0.f);
+
+        float maxWavelength = 750;
+        float minWaveLength = 380;
+        if((flags & 1) == 1) {
+            maxWavelength = 0.247 * particle_diameter; //fromSamders 1964 Color of Precious Opal
+            minWaveLength = 0.72 * maxWavelength;
+        } 
 
         vec3 col = vec3(0);
 
-        if(wavelength < 380 || wavelength > 750) {
+        if(wavelength < 380 || wavelength < minWaveLength || wavelength > 750 || wavelength > maxWavelength) {
             col = bodyCol;
         }
         else if (wavelength >= 380.f && wavelength <= 440.f) {
