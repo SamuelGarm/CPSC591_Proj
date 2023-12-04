@@ -87,38 +87,55 @@ void main() {
 	    //color = vec4(vertCol, 1);//vec4(max(0, dot(norm, lightDir)) * vertCol, vertAlpha);
 	    float camAngle = acos(dot(cameraDir, norm));
         float lightAngle = acos(dot(lightDir, norm));
-	    float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*particle_diameter)/1.f;
-        wavelength = max(wavelength,0.f);
 
-        float maxWavelength = 750;
-        float minWaveLength = 380;
-        if((flags & 1) == 1) {
-            maxWavelength = 0.247 * particle_diameter; //fromSamders 1964 Color of Precious Opal
-            minWaveLength = 0.72 * maxWavelength;
-        } 
+        vec3 RGBs[7];
 
-        vec3 col = vec3(0);
+        for(int i = 0; i < 7; i++) {
+            int m = i - 3;
+            if(m==0)
+                continue;
 
-        if(wavelength < 380 || wavelength < minWaveLength || wavelength > 750 || wavelength > maxWavelength) {
-            col = bodyCol;
+	        float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*particle_diameter)/1.f;
+            wavelength = max(wavelength,0.f);
+
+            float maxWavelength = 750;
+            float minWaveLength = 380;
+            if((flags & 1) == 1) {
+                maxWavelength = 0.247 * particle_diameter; //fromSamders 1964 Color of Precious Opal
+                minWaveLength = 0.72 * maxWavelength;
+            } 
+
+            vec3 col = vec3(0);
+
+            if(wavelength < 380 || wavelength < minWaveLength || wavelength > 750 || wavelength > maxWavelength) {
+                col = bodyCol;
+            }
+            else if (wavelength >= 380.f && wavelength <= 440.f) {
+                float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
+                float R = (-(wavelength - 440) / (440 - 380)) * attenuation;
+                float B = 1.0 * attenuation;
+                col = vec3(R + (1-attenuation) * bodyCol.r, bodyCol.g, B + (1-attenuation) * bodyCol.b);
+
+            }
+            else if (wavelength >= 645 && wavelength <= 750) {
+                float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
+                float R = 1.0 * attenuation;
+                col = vec3(R + (1-attenuation) * bodyCol.r, bodyCol.g, bodyCol.b);
+            } else {
+                col = wavelengthToRGB(wavelength);
+            }
+
+            RGBs[i] = col;
         }
-        else if (wavelength >= 380.f && wavelength <= 440.f) {
-            float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
-            float R = (-(wavelength - 440) / (440 - 380)) * attenuation;
-            float B = 1.0 * attenuation;
-            col = vec3(R + (1-attenuation) * bodyCol.r, bodyCol.g, B + (1-attenuation) * bodyCol.b);
 
-        }
-        else if (wavelength >= 645 && wavelength <= 750) {
-            float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
-            float R = 1.0 * attenuation;
-            col = vec3(R + (1-attenuation) * bodyCol.r, bodyCol.g, bodyCol.b);
-        } else {
-            col = wavelengthToRGB(wavelength);
-        }
+        vec3 finalCol = vec3(0);
+        for(int i = 0; i < 7; i++)
+            finalCol += RGBs[i];
+        finalCol[0] = min(finalCol[0], 1);
+        finalCol[1] = min(finalCol[1], 1);
+        finalCol[2] = min(finalCol[2], 1);
 
-        
-	    out_color = vec4(col,1);
+	    out_color = vec4(finalCol/6,1);
     }
 
 }
