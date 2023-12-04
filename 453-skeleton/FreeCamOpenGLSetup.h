@@ -92,7 +92,7 @@ namespace Graphics {
 		float zClipMax = 0;
 	};
 
-	void loadVoxelgrid(VoxelGrid<clusterData>& grid, clippingPlanes* clip = nullptr) {
+	void loadVoxelgrid(VoxelGrid<clusterData>& grid, clippingPlanes* clip = nullptr, bool fillInside = true) {
 		instancedClusterRenderData.clear();
 		glm::vec3 upperBounds;
 		glm::vec3 lowerBounds;
@@ -115,42 +115,42 @@ namespace Graphics {
 					// Checks to see if the coordinate is within range
 					if (x - 1 >= lowerBounds.x && x - 1 < upperBounds.x) {
 						// checks to see if the neighbour is a void - if not a void - get orientation
-						if (grid.at(x - 1, y, z).material == Void) {
+						if ((fillInside && grid.at(x - 1, y, z).material == Void) || grid.at(x - 1, y, z).material == Empty) {
 							render = true;
 						}
 					}
 					else { render = true; }
 
 					if (x + 1 >= lowerBounds.x && x + 1 < upperBounds.x) {
-						if (grid.at(x + 1, y, z).material == Void) {
+						if ((fillInside && grid.at(x + 1, y, z).material == Void) || grid.at(x + 1, y, z).material == Empty) {
 							render = true;
 						}
 					}
 					else { render = true; }
 
 					if (y - 1 >= lowerBounds.y && y - 1 < upperBounds.y) {
-						if (grid.at(x, y - 1, z).material == Void) {
+						if ((fillInside && grid.at(x, y - 1, z).material == Void) || grid.at(x, y - 1, z).material == Empty) {
 							render = true;
 						}
 					}
 					else { render = true; }
 
 					if (y + 1 >= lowerBounds.y && y + 1 < upperBounds.y) {
-						if (grid.at(x, y + 1, z).material == Void) {
+						if ((fillInside && grid.at(x, y + 1, z).material == Void) || grid.at(x, y + 1, z).material == Empty) {
 							render = true;
 						}
 					}
 					else { render = true; }
 
 					if (z - 1 >= lowerBounds.z && z - 1 < upperBounds.z) {
-						if (grid.at(x, y, z - 1).material == Void) {
+						if ((fillInside && grid.at(x, y, z - 1).material == Void) || grid.at(x, y, z - 1).material == Empty) {
 							render = true;
 						}
 					}
 					else { render = true; }
 
 					if (z + 1 >= lowerBounds.z && z + 1 < upperBounds.z) {
-						if (grid.at(x, y, z + 1).material == Void) {
+						if ((fillInside && grid.at(x, y, z + 1).material == Void) || grid.at(x, y, z + 1).material == Empty) {
 							render = true;
 						}
 					}

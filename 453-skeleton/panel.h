@@ -40,6 +40,7 @@ extern bool camSpeedChanged;
 extern float camSpeed;
 
 extern int renderPipeline;
+extern bool pipelineChanged;
 extern VoxelGrid<clusterData> vGrid;
 
 // reset
