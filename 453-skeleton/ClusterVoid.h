@@ -15,7 +15,7 @@ struct clusterData {
 	std::vector<glm::vec3> incLightAmplitude;	// Amplitude (energy) of incoming light
 	std::vector<glm::vec3> incLightDir;			// std vector because multiple incoming lights
 	glm::vec3 orientation = glm::vec3(0.0, 0.0, 0.0); // Orientation of voxel / cluster (euler angle difference from the up vector)
-	Material material = Empty;								// Boolean if the voxel / cluster is a void
+	Material material = Empty;					// Cluster Type
 };
 
 glm::vec3 getClusterRatios(VoxelGrid<clusterData>& vGrid);

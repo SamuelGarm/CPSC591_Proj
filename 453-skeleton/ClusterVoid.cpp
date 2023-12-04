@@ -334,12 +334,18 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius) {
 
 // Input a, b, c are the xyz dimensions of a 'rectangle'
 // uses these dimensions to find the 'radius' of each axis (divide by 2)
-// then uses parametric ellispoid equation to iterate through the u and v 
+// then uses parametric ellipsoid equation to iterate through the u and v 
 // directions on a parametric surface
 // https://mathworld.wolfram.com/Ellipsoid.html
 std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
-	int uLength = 500;
-	int vLength = 500;
+	// Finds the highest value of the three radius scalars
+	float maxR = a;
+	if (b > maxR) maxR = b;
+	if (c > maxR) maxR = c;
+
+	// Use the highest radius scalar to determine sample rate
+	int uLength = maxR * 5;
+	int vLength = maxR * 5;
 	float x, y, z;
 
 	//float lowestX = 0;
@@ -367,7 +373,7 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
 			//if (z > highestZ) highestZ = z;
 			//if (z < lowestZ) lowestZ = z;
 
-			//printf("parametric ellispoid: %.f, %.f, %.f \n", x, y, z);
+			//printf("parametric ellipsoid: %.f, %.f, %.f \n", x, y, z);
 
 			// Calls a post-processing step to clamp values to the voxel rectangle range
 			coords.push_back(postProcessVec(glm::vec3(x,y,z),a,b,c));
@@ -385,8 +391,9 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
 
 //https://www.wolframalpha.com/input/?i=parametrization+of+a+sphere
 std::vector<glm::vec3> sphereParameterization(float radius) {
-	int uLength = 250;
-	int vLength = 250;
+	// use radius to determine sample rate
+	int uLength = radius * 15;
+	int vLength = radius * 15;
 	float x, y, z;
 
 	std::vector<glm::vec3> coords;
