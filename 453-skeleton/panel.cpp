@@ -24,6 +24,10 @@ float zClipMin = 0;
 float zClipMax = 10;
 
 int renderPipeline = 0;
+glm::vec3 lightDir = glm::vec3(0, 0, 1);
+float ks = 0.3;
+float kd = 0.4;
+float ka = 0.2;
 
 bool clippingChanged = false;
 bool bgColourChanged = false;
@@ -76,6 +80,14 @@ void updateMenu() {
       DragFloatRange2("Y Clipping", &yClipMin, &yClipMax, 1, minClipBounds.y, maxClipBounds.y, "%.0f");
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
+
+    Spacing();
+    DragFloat3("Light Dir", (float*)&lightDir);
+
+    Spacing();
+    SliderFloat("kd", &kd, 0, 10);
+    SliderFloat("ks", &ks, 0, 10);
+    SliderFloat("ka", &ka, 0, 10);
 
     Spacing();
     const char* items[] = { "Orientation", "grating" };

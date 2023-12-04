@@ -14,17 +14,21 @@
 #include "VoxelGrid.h"
 #include "ClusterVoid.h"
 
+
 namespace Graphics {
 	struct RenderData {
 		glm::mat4 transform = glm::mat4(1);
 		glm::vec3 direction = glm::vec3(0);
+		GLuint mat = 0; // 0 = void 1 = cluster
 	};
 
-	std::vector<RenderData> instancedRenderData;
+	std::vector<RenderData> instancedClusterRenderData;
+	std::vector<RenderData> instancedVoidRenderData;
 	ShaderProgram* orientationShader;
 	ShaderProgram* gratingMaximaShader;
+
 	GLuint voxels_vertexArray; //stores the state of how to render and interpert that buffer data
-	GLuint voxels_vertexBuffer; //stores the vertex data in a buffer on the GPU
+	GLuint cube_vertexBuffer; //stores the vertex data in a buffer on the GPU
 	GLuint voxels_instanceTransformBuffer; //stores data that is used for each instance of voxels
 
 	void setupOpenGL() {
@@ -37,8 +41,8 @@ namespace Graphics {
 		*/
 		glGenVertexArrays(1, &voxels_vertexArray);
 		glBindVertexArray(voxels_vertexArray);
-		glGenBuffers(1, &voxels_vertexBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, voxels_vertexBuffer);
+		glGenBuffers(1, &cube_vertexBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, cube_vertexBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(cube_data), cube_data, GL_STATIC_DRAW);
 
 		//set up vertex data for the cube
@@ -53,25 +57,30 @@ namespace Graphics {
 		glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
 		//set up instanced transformation matricies (I hate that I need to pass a 4x4 matrix...)
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), (void*)(0 * sizeof(glm::vec4)));
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3) + sizeof(GLuint), (void*)0);
 		glVertexAttribDivisor(2, 1);
 
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), (void*)(1 * sizeof(glm::vec4)));
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3) + sizeof(GLuint), (void*)(1 * sizeof(glm::vec4)));
 		glVertexAttribDivisor(3, 1);
 
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), (void*)(2 * sizeof(glm::vec4)));
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3) + sizeof(GLuint), (void*)(2 * sizeof(glm::vec4)));
 		glVertexAttribDivisor(4, 1);
 
 		glEnableVertexAttribArray(5);
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), (void*)(3 * sizeof(glm::vec4)));
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3) + sizeof(GLuint), (void*)(3 * sizeof(glm::vec4)));
 		glVertexAttribDivisor(5, 1);
 
 		//the direction
 		glEnableVertexAttribArray(6);
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3), (void*)(4 * sizeof(glm::vec4)));
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3) + sizeof(GLuint), (void*)(4 * sizeof(glm::vec4)));
 		glVertexAttribDivisor(6, 1);
+
+		//material
+		glEnableVertexAttribArray(7);
+		glVertexAttribPointer(7, 1, GL_INT, GL_FALSE, 4 * sizeof(glm::vec4) + sizeof(glm::vec3) + sizeof(GLuint), (void*)(4 * sizeof(glm::vec4) + sizeof(glm::vec3)));
+		glVertexAttribDivisor(7, 1);
 	}
 
 	struct clippingPlanes {
@@ -84,7 +93,7 @@ namespace Graphics {
 	};
 
 	void loadVoxelgrid(VoxelGrid<clusterData>& grid, clippingPlanes* clip = nullptr) {
-		instancedRenderData.clear();
+		instancedClusterRenderData.clear();
 		glm::vec3 upperBounds;
 		glm::vec3 lowerBounds;
 		if (clip == nullptr) {
@@ -99,7 +108,7 @@ namespace Graphics {
 		for (int x = lowerBounds.x; x < upperBounds.x; x++) {
 			for (int y = lowerBounds.y; y < upperBounds.y; y++) {
 				for (int z = lowerBounds.z; z < upperBounds.z; z++) {
-					if (grid.at(x, y, z).material == Empty || grid.at(x, y, z).material == Void)
+					if (grid.at(x, y, z).material == Empty)
 						continue;
 
 					bool render = false;
@@ -109,13 +118,14 @@ namespace Graphics {
 						if (grid.at(x - 1, y, z).material == Void) {
 							render = true;
 						}
-					} else { render = true; }
+					}
+					else { render = true; }
 
 					if (x + 1 >= lowerBounds.x && x + 1 < upperBounds.x) {
 						if (grid.at(x + 1, y, z).material == Void) {
 							render = true;
 						}
-					} 
+					}
 					else { render = true; }
 
 					if (y - 1 >= lowerBounds.y && y - 1 < upperBounds.y) {
@@ -150,18 +160,19 @@ namespace Graphics {
 						RenderData data;
 						data.transform = glm::translate(glm::mat4(1), glm::vec3(x, y, z));
 						data.direction = grid.at(x, y, z).orientation;
-						instancedRenderData.push_back(RenderData(data));
+						data.mat = grid.at(x, y, z).material == Void ? 0 : 1;
+						instancedClusterRenderData.push_back(RenderData(data));
 					}
 
 				}
 			}
 		} //end of for loops
-		std::cout << "Loaded " << instancedRenderData.size() << " voxels for rendering\n";
+		std::cout << "Loaded " << instancedClusterRenderData.size() << " voxels for rendering\n";
 		std::cout << " Total voxel grid size is " << grid.getDimensions().x * grid.getDimensions().y * grid.getDimensions().z << "\n";
 
 		glBindVertexArray(voxels_vertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
-		glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::mat4) + sizeof(glm::vec3)) * instancedRenderData.size(), instancedRenderData.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, (sizeof(glm::mat4) + sizeof(glm::vec3) + sizeof(int)) * instancedClusterRenderData.size(), instancedClusterRenderData.data(), GL_STATIC_DRAW);
 
 
 	}

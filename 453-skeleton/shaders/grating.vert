@@ -5,12 +5,15 @@ layout (location = 1) in vec3 in_norm;
 //instanced 
 layout (location = 2) in mat4 instanceMatrix; //uses 2,3,4,5
 layout (location = 6) in vec3 orientation;
+layout (location = 7) in int material;
 
 uniform mat4 cameraMat;
 
 out vec3 norm;
+out vec3 cube_norm;
 out vec3 FragPos;
 out vec3 out_orientation;
+flat out int vert_mat;
 
 //vec3 lightDir = normalize(vec3(1.3,2.3,4));
 
@@ -42,10 +45,19 @@ mat3 eulerToMatrix(vec3 angles) {
 }
 
 void main() {
-    mat3 rotation = eulerToMatrix(orientation);
+    vec3 newOrient = orientation;
+    cube_norm = in_norm;
+    for(int i = 0; i < 4; i++) {
+        newOrient.x = newOrient.x > 45.f ? newOrient.x - 90.f : newOrient.x;
+        newOrient.y = newOrient.y > 45.f ? newOrient.y - 90.f : newOrient.y;
+        newOrient.z = newOrient.z > 45.f ? newOrient.z - 90.f : newOrient.z;
+    }
+    newOrient *= 3.14/180.f; //convert to rads
+    mat3 rotation = eulerToMatrix(newOrient);
 	norm = rotation * in_norm;
 	FragPos = vec3(instanceMatrix * vec4(in_pos, 1.0));
 	gl_Position = cameraMat * instanceMatrix * vec4(in_pos, 1.0);
 	out_orientation = orientation;
+    vert_mat = material;
 }
 

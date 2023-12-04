@@ -52,10 +52,12 @@ bool ShaderProgram::checkAndLogLinkSuccess() const {
 		glGetProgramInfoLog(programID, logLength, NULL, log.data());
 
 		printf("SHADER_PROGRAM linking {} + {}:\n{}", vertex.getPath(), fragment.getPath(), log.data());
+		std::cout << "SHADER_PROGRAM linking " << vertex.getPath() << " " << fragment.getPath() << " failed\n";
+		std::cout << "Error message: " << log.data();
 		return false;
 	}
 	else {
-		printf("SHADER_PROGRAM successfully compiled and linked {} + {}", vertex.getPath(), fragment.getPath());
+		std::cout << "SHADER_PROGRAM successfully compiled and linked " << vertex.getPath() << " " << fragment.getPath() << '\n';
 		return true;
 	}
 }

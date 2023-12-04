@@ -27,6 +27,11 @@ extern bool clippingChanged;
 extern glm::vec3 minClipBounds;
 extern glm::vec3 maxClipBounds;
 
+extern glm::vec3 lightDir;
+extern float ks;
+extern float kd;
+extern float ka;
+
 //camera controls
 extern bool camSpeedChanged;
 extern float camSpeed;

@@ -238,9 +238,21 @@ int main() {
 
 			GLuint cameraPosUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraPos");
 			glUniform3fv(cameraPosUniform, 1, glm::value_ptr(a5->camera.getPos()));
+
+			GLuint lightDirUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "lightPos");
+			glUniform3fv(lightDirUniform, 1, glm::value_ptr(glm::normalize(panel::lightDir)));
+
+			GLuint kdUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "kd");
+			glUniform1f(kdUniform, panel::kd);
+
+			GLuint ksUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "ks");
+			glUniform1f(ksUniform, panel::ks);
+
+			GLuint kaUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "ka");
+			glUniform1f(kaUniform, panel::ka);
 		}
 		
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedRenderData.size());
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());
 
 		if (panel::clippingChanged) {
 			std::cout << "Clipping changed\n";
