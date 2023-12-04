@@ -19,37 +19,36 @@ vec3 wavelengthToRGB(float wavelength)
 	float R = 0.f;
     float G = 0.f;
     float B = 0.f;
-    float gamma = 0.8;
 
     if (wavelength >= 380.f && wavelength <= 440.f) {
         float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
-        R = pow((-(wavelength - 440) / (440 - 380)) * attenuation, gamma);
+        R = (-(wavelength - 440) / (440 - 380)) * attenuation;
         G = 0.0;
-        B = pow(1.0 * attenuation, gamma);
+        B = 1.0 * attenuation;
         }
     else if (wavelength >= 440 && wavelength <= 490) {
         R = 0.0;
-        G = pow((wavelength - 440) / (490 - 440), gamma);
+        G = (wavelength - 440) / (490 - 440);
         B = 1.0;
         }
     else if (wavelength >= 490 && wavelength <= 510) {
         R = 0.0;
         G = 1.0;
-        B = pow(-(wavelength - 510) / (510 - 490), gamma);
+        B = -(wavelength - 510) / (510 - 490);
         }
     else if (wavelength >= 510 && wavelength <= 580) {
-        R = pow((wavelength - 510) / (580 - 510), gamma);
+        R = (wavelength - 510) / (580 - 510);
         G = 1.0;
         B = 0.0;
         }
     else if (wavelength >= 580 && wavelength <= 645) {
         R = 1.0;
-        G = pow(-(wavelength - 645) / (645 - 580), gamma);
+        G = -(wavelength - 645) / (645 - 580);
         B = 0.0;
         }
     else if (wavelength >= 645 && wavelength <= 750) {
         float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
-        R = pow(1.0 * attenuation, gamma);
+        R = 1.0 * attenuation;
         G = 0.0;
         B = 0.0;
         }
@@ -83,8 +82,28 @@ void main() {
         float lightAngle = acos(dot(lightDir, norm));
 	    float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/)*1400.f)/1.f;
         wavelength = max(wavelength,0.f);
-        //float alpha = wavelength == 0 ? 0.13 : 1;
-        vec3 col = wavelength > 0 ? wavelengthToRGB(wavelength) : bodyCol;
+
+        vec3 col = vec3(0);
+
+        if(wavelength < 380 || wavelength > 750) {
+            col = bodyCol;
+        }
+        else if (wavelength >= 380.f && wavelength <= 440.f) {
+            float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
+            float R = (-(wavelength - 440) / (440 - 380)) * attenuation;
+            float B = 1.0 * attenuation;
+            col = vec3(R + (1-attenuation) * bodyCol.r, bodyCol.g, B + (1-attenuation) * bodyCol.b);
+
+        }
+        else if (wavelength >= 645 && wavelength <= 750) {
+            float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
+            float R = 1.0 * attenuation;
+            col = vec3(R + (1-attenuation) * bodyCol.r, bodyCol.g, bodyCol.b);
+        } else {
+            col = wavelengthToRGB(wavelength);
+        }
+
+        
 	    out_color = vec4(col,1);
     }
 
