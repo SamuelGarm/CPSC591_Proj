@@ -176,7 +176,7 @@ int main() {
 	VoxelGrid<clusterData> vGrid = setupGrid(voxelGridSize.x, voxelGridSize.y, voxelGridSize.z);
 	vGrid.setVoidRatio(0.75f);
 	distributeVoidClusters(vGrid, true);
-	//distributeVoidClusterV2(vGrid, 3.f);
+	//distributeVoidClusterV2(vGrid, 1.f);
 	trimVGrid(vGrid);
 		
 	Graphics::setupOpenGL();
