@@ -35,6 +35,7 @@ bool useSanders = false;
 bool clippingChanged = false;
 bool bgColourChanged = false;
 bool camSpeedChanged = false;
+bool pipelineChanged = false;
 float camSpeed = 0.3f;
 
 extern VoxelGrid<clusterData> vGrid = setupGrid(0,0,0);
@@ -50,7 +51,7 @@ bool resetView = false;
 void updateMenu() {
   using namespace ImGui;
   float olds[] = { xClipMin , xClipMax, yClipMin, yClipMax, zClipMin, zClipMax };
-  int oldPipeline = 0;
+  int oldPipeline = renderPipeline;
   bool oldCb = useClipping;
 
   ImGui_ImplOpenGL3_NewFrame();
@@ -189,6 +190,8 @@ void updateMenu() {
   }
   if (oldCb != useClipping)
     clippingChanged = true;
+  if (oldPipeline != renderPipeline)
+    pipelineChanged = true;
   ImGui::Render();	// Render the ImGui window
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // Some middleware thing
 }

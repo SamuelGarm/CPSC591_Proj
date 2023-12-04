@@ -290,6 +290,12 @@ int main() {
 			Graphics::loadVoxelgrid(vGrid, clip);
 		}
 
+		if (panel::pipelineChanged) {
+			bool fillInide = panel::renderPipeline == 0 ? true : false;
+			Graphics::loadVoxelgrid(vGrid, clip, fillInide);
+			panel::pipelineChanged = false;
+		}
+
 		if (panel::camSpeedChanged) {
 			a5->camera.cameraSpeed = panel::camSpeed;
 			panel::camSpeedChanged = false;
