@@ -160,7 +160,7 @@ int main() {
 	// Change your image/screensize here.
 	int width = 1000;
 	int height = 800;
-	Window window(width, height, "CPSC 491 - Opal");
+	Window window(width, height, "CPSC 591 - Opal");
 
 	//set up the image buffer for output
 	//outpuImage.Initialize();

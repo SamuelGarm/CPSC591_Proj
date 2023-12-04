@@ -66,6 +66,7 @@ void distributeVoidClusters(VoxelGrid<clusterData>& vGrid) {
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
 	//std::cout << "total number of cells: " << totalNumberOfCells << std::endl;
 	srand(time(0));
+
 	// While the ratio of clusters to total cells is less than the void ratio, keep iterating
 	while (curNumOfClusters / totalNumberOfCells < vGrid.getVoidRatio()) {
 		// selects cells at random 
