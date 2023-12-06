@@ -127,7 +127,7 @@ void updateMenu() {
         InputInt("X", &xSize);
         InputInt("Y", &ySize);
         InputInt("Z", &zSize);
-        InputFloat("Cluster Percentage", &clusterPercentage);
+        SliderFloat("Cluster Percentage", &clusterPercentage, 0.0, 1.0);
         if (Button("Generate")) {
             //vGrid.~VoxelGrid();
             //vGrid = setupGrid(xSize, ySize, zSize);

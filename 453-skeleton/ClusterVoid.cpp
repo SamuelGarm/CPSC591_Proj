@@ -385,8 +385,8 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c) {
 
 //https://www.wolframalpha.com/input/?i=parametrization+of+a+sphere
 std::vector<glm::vec3> sphereParameterization(float radius) {
-	int uLength = 250;
-	int vLength = 250;
+	int uLength = radius * 15;
+	int vLength = radius * 15;
 	float x, y, z;
 
 	std::vector<glm::vec3> coords;
