@@ -1,4 +1,5 @@
 #include "ClusterVoid.h"
+#include "panel.h"
 #include <random>
 #include <set>
 #include <algorithm>
@@ -293,18 +294,22 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius, bo
 		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z - 1);
 		//std::cout << current_x << "," << current_y << "," << current_z << std::endl;
 
+		// Generates a random radius based on a mean value exponential distribution
+		float randRadius = exponential_random(meanRadius);
+
 		// Setting rotation values
 		glm::vec3 rOrientation = glm::vec3(0);
 		// if neighbours are sampled, check the neighbours in a radius and collect their average facing
 		if (sampleNeighbours) {
-			rOrientation = checkNeighboursRadius(current_x, current_y, current_z, vGrid);
+			bool fixedRadius = panel::fixedRadius;
+			rOrientation = checkNeighboursRadius(current_x, current_y, current_z, vGrid, 
+				(randRadius * 2.f), fixedRadius);
 		}
 		// if the orientation vector is 0 (no neighbours, or not sampled) give it a random orientation
 		if (rOrientation.x == 0 && rOrientation.y == 0 && rOrientation.z == 0) {
 			rOrientation = randOrientation();
 		}
-
-		int randRadius = exponential_random(meanRadius);
+		
 		// Get a list of surface points on a paramaterized sphere
 		std::vector<glm::vec3> fillList = sphereParameterization(randRadius);
 
@@ -352,14 +357,27 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius, bo
 }
 
 // Checks the neighbours in a radius, collects each voxel's orientation and averages total
-glm::vec3 checkNeighboursRadius(int in_x, int in_y, int in_z, VoxelGrid<clusterData>& vGrid) {
-	// Pick the smallest dimension of the grid to set the radius of search
-	float radius = vGrid.getDimensions().x;
-	if (radius > vGrid.getDimensions().y) radius = vGrid.getDimensions().y;
-	if (radius > vGrid.getDimensions().z) radius = vGrid.getDimensions().z;
+glm::vec3 checkNeighboursRadius(int in_x, int in_y, int in_z, VoxelGrid<clusterData>& vGrid, 
+	float in_radius, bool fixedRadius) {
+	
+	float radius = 0.f;
+
+	// if fixed radius uses the dimensions of the input grid as a fixed sampling radius
+	if (fixedRadius) {
+		// Pick the smallest dimension of the grid to set the radius of search
+		radius = vGrid.getDimensions().x;
+		if (radius > vGrid.getDimensions().y) radius = vGrid.getDimensions().y;
+		if (radius > vGrid.getDimensions().z) radius = vGrid.getDimensions().z;
+		radius = radius / 2.f;
+	}
+	// if fixed radius is not set, uses in the randomized input radius of the spheroid
+	else {
+		radius = in_radius;
+	}
+
 
 	// Get a list of surface points on a paramaterized sphere
-	std::vector<glm::vec3> fillList = sphereParameterization(radius / 2.f);
+	std::vector<glm::vec3> fillList = sphereParameterization(radius);
 
 	std::vector<glm::vec3> orientations;;
 
