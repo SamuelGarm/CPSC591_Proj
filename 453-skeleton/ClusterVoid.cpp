@@ -1,5 +1,7 @@
 #include "ClusterVoid.h"
 #include <random>
+#include <set>
+#include <algorithm>
 
 float curNumOfClusters = 0.0f; // used for void ratio calculations
 
@@ -61,11 +63,13 @@ float exponential_random(float mean) {
 	return distribution(generator);
 }
 
+// sets every voxel in the grid to a void, and resets the orientation
 void setAllVoid(VoxelGrid<clusterData>& vGrid) {
 	for (int i = 0; i < vGrid.getDimensions().x; i++) {
 		for (int j = 0; j < vGrid.getDimensions().y; j++) {
 			for (int k = 0; k < vGrid.getDimensions().z; k++) {
 				vGrid.at(i, j, k).material = Void;
+				vGrid.at(i, j, k).orientation = glm::vec3(0);
 
 			}
 		}
@@ -254,7 +258,7 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 		}		
 	}
 	
-	// If there are some orientations in the list, average them and normalize them
+	// Averages the orientations
 	glm::vec3 averagedOrientation = glm::vec3(0.0,0.0,0.0);
 	if (orientations.size() > 0) {
 		for (int i = 0; i < orientations.size(); i++) {
@@ -268,7 +272,7 @@ glm::vec3 checkNeighbours(int x, int y, int z, VoxelGrid<clusterData>& vGrid) {
 
 // Distributes clusters in spheroids with radius based on an exponential distribution
 // function derived from a mean radius
-void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius) {
+void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius, bool sampleNeighbours) {
 	setAllVoid(vGrid);
 
 	float totalNumberOfCells = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
@@ -282,10 +286,19 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius) {
 		int current_y = glm::linearRand<int>(0, vGrid.getDimensions().y - 1);
 		int current_z = glm::linearRand<int>(0, vGrid.getDimensions().z - 1);
 		//std::cout << current_x << "," << current_y << "," << current_z << std::endl;
-		clusterData& currCluster = vGrid.at(current_x, current_y, current_z);
-		glm::vec3 rOrientation = randOrientation();
-		int randRadius = exponential_random(meanRadius);
 
+		// Setting rotation values
+		glm::vec3 rOrientation = glm::vec3(0);
+		// if neighbours are sampled, check the neighbours in a radius and collect their average facing
+		if (sampleNeighbours) {
+			rOrientation = checkNeighboursRadius(current_x, current_y, current_z, vGrid);
+		}
+		// if the orientation vector is 0 (no neighbours, or not sampled) give it a random orientation
+		if (rOrientation.x == 0 && rOrientation.y == 0 && rOrientation.z == 0) {
+			rOrientation = randOrientation();
+		}
+
+		int randRadius = exponential_random(meanRadius);
 		// Get a list of surface points on a paramaterized sphere
 		std::vector<glm::vec3> fillList = sphereParameterization(randRadius);
 
@@ -330,6 +343,72 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius) {
 			}
 		} 
 	}
+}
+
+// Checks the neighbours in a radius, collects each voxel's orientation and averages total
+glm::vec3 checkNeighboursRadius(int in_x, int in_y, int in_z, VoxelGrid<clusterData>& vGrid) {
+	// Pick the smallest dimension of the grid to set the radius of search
+	float radius = vGrid.getDimensions().x;
+	if (radius > vGrid.getDimensions().y) radius = vGrid.getDimensions().y;
+	if (radius > vGrid.getDimensions().z) radius = vGrid.getDimensions().z;
+
+	// Get a list of surface points on a paramaterized sphere
+	std::vector<glm::vec3> fillList = sphereParameterization(radius);
+
+	std::vector<glm::vec3> orientations;;
+
+	// Iterate through the surface points list
+	for (int i = 0; i < fillList.size(); i++) {
+		float x = fillList.at(i).x + in_x;
+		float y = fillList.at(i).y + in_y;
+		float z = fillList.at(i).z + in_z;
+
+		// if the current sample point is less than the radius
+		if (x < in_x) {
+			// fill all voxels on that row to the middle
+			for (int j = x; j < in_x; j++) {
+				// if the voxel being filled is within the range
+				if (j >= 0 && j < vGrid.getDimensions().x &&
+					y >= 0 && y < vGrid.getDimensions().y &&
+					z >= 0 && z < vGrid.getDimensions().z) {
+					if (vGrid.at(j, y, z).material == Cluster) {
+						orientations.push_back(vGrid.at(j, y, z).orientation);
+					}
+
+				}
+			}
+		}
+		// if the current sampel point is greater than the radius
+		else if (x >= in_x) {
+			// fill all voxels on that row to the middle
+			for (int j = x; j >= in_x; j--) {
+				// if the voxel being filled is within the range
+				if (j >= 0 && j < vGrid.getDimensions().x &&
+					y >= 0 && y < vGrid.getDimensions().y &&
+					z >= 0 && z < vGrid.getDimensions().z) {
+					if (vGrid.at(j, y, z).material == Cluster) {
+						orientations.push_back(vGrid.at(j, y, z).orientation);
+					}
+				}
+			}
+		}
+	}
+	// Sorts the collected orientations array and removes all
+	// duplicated entries to give better average
+	// duplicated entries will probabilistically come from the same neighbour
+	//std::sort(orientations.begin(), orientations.end());
+	orientations.erase(std::unique(orientations.begin(), orientations.end()), orientations.end());
+
+	// Averages the orientations
+	glm::vec3 averagedOrientation = glm::vec3(0.0, 0.0, 0.0);
+	if (orientations.size() > 0) {
+		for (int i = 0; i < orientations.size(); i++) {
+			averagedOrientation += orientations.at(i);
+		}
+		//averagedOrientation = normalize(averagedOrientation / (float) orientations.size());
+		averagedOrientation = averagedOrientation / (float)orientations.size();
+	}
+	return averagedOrientation;
 }
 
 // Input a, b, c are the xyz dimensions of a 'rectangle'
@@ -432,6 +511,7 @@ glm::vec3 postProcessVec(glm::vec3 vec, float a, float b, float c) {
 	return glm::vec3(x, y, z);
 }
 
+// Trims the rectangle vGrid into an ellipsoid 
 void trimVGrid(VoxelGrid<clusterData>& vGrid) {
 	auto trimList = ellipsoid(vGrid.getDimensions().x, vGrid.getDimensions().y, vGrid.getDimensions().z);
 

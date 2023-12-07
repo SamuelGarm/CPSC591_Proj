@@ -137,7 +137,7 @@ void updateMenu() {
                 distributeVoidClusters(vGrid, sampleNeighbours);
             }
             else if (clusterMode == 1) {
-                distributeVoidClusterV2(vGrid, meanRadius);
+                distributeVoidClusterV2(vGrid, meanRadius, sampleNeighbours);
             }
             trimVGrid(vGrid);
             pipelineChanged = true;
