@@ -117,8 +117,10 @@ void updateMenu() {
 
 
     Spacing();
-    const char* items[] = { "Orientation", "grating" };
-    Combo("RenderingPipeline", &renderPipeline, items, 2);
+    const char* items[] = { "Orientation", "Grating" };
+    //Combo("RenderingPipeline", &renderPipeline, items, 2);
+    RadioButton(items[0], &renderPipeline, 0); ImGui::SameLine();
+    RadioButton(items[1], &renderPipeline, 1);
 
     Spacing();
     const char* clustGenNames[] = {"Linear Random","Exp Radius"};
@@ -128,6 +130,13 @@ void updateMenu() {
         InputInt("Y", &ySize);
         InputInt("Z", &zSize);
         SliderFloat("Cluster Percentage", &clusterPercentage, 0.0, 1.0);
+        Text("Cluster Generation Type: ");
+        RadioButton(clustGenNames[0], &clusterMode, 0); ImGui::SameLine();
+        RadioButton(clustGenNames[1], &clusterMode, 1);
+        if (clusterMode == 1) {
+            InputFloat("Mean Radius", &meanRadius);
+        }
+        Checkbox("Sample Neighbours", &sampleNeighbours);
         if (Button("Generate")) {
             //vGrid.~VoxelGrid();
             //vGrid = setupGrid(xSize, ySize, zSize);
@@ -142,13 +151,6 @@ void updateMenu() {
             trimVGrid(vGrid);
             pipelineChanged = true;
         }
-        Text("Cluster Generation Type: ");
-        RadioButton(clustGenNames[0], &clusterMode, 0); ImGui::SameLine();
-        RadioButton(clustGenNames[1], &clusterMode, 1);
-        if (clusterMode == 1) {
-            InputFloat("Mean Radius", &meanRadius);
-        }
-        Checkbox("Sample Neighbours", &sampleNeighbours);
     }
 
     Spacing();

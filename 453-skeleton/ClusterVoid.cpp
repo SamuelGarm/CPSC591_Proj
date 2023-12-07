@@ -281,6 +281,12 @@ void distributeVoidClusterV2(VoxelGrid<clusterData>& vGrid, float meanRadius, bo
 
 	// While the ratio of clusters to total cells is less than the void ratio, keep iterating
 	while (curNumOfClusters / totalNumberOfCells < vGrid.getVoidRatio()) {
+		//system("cls");
+		//std::cout << "Current Cluster %: " << 100.f*(curNumOfClusters / totalNumberOfCells)
+		//	<< ", Target %: " << 100.f*(vGrid.getVoidRatio()) << "|| % Complete: "
+		//	<< 100.f * ((curNumOfClusters / totalNumberOfCells) / vGrid.getVoidRatio())
+		//	<< std::endl;
+
 		// selects cells at random 
 		int current_x = glm::linearRand<int>(0, vGrid.getDimensions().x - 1);
 		int current_y = glm::linearRand<int>(0, vGrid.getDimensions().y - 1);
@@ -353,7 +359,7 @@ glm::vec3 checkNeighboursRadius(int in_x, int in_y, int in_z, VoxelGrid<clusterD
 	if (radius > vGrid.getDimensions().z) radius = vGrid.getDimensions().z;
 
 	// Get a list of surface points on a paramaterized sphere
-	std::vector<glm::vec3> fillList = sphereParameterization(radius);
+	std::vector<glm::vec3> fillList = sphereParameterization(radius / 2.f);
 
 	std::vector<glm::vec3> orientations;;
 
@@ -401,6 +407,7 @@ glm::vec3 checkNeighboursRadius(int in_x, int in_y, int in_z, VoxelGrid<clusterD
 
 	// Averages the orientations
 	glm::vec3 averagedOrientation = glm::vec3(0.0, 0.0, 0.0);
+	//std::cout << "sampled neighbour orientations count: " << orientations.size() << std::endl;
 	if (orientations.size() > 0) {
 		for (int i = 0; i < orientations.size(); i++) {
 			averagedOrientation += orientations.at(i);
