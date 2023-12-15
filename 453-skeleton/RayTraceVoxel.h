@@ -1,5 +1,6 @@
 #pragma once
 #include "Camera.h"
+#include "ClusterVoid.h"
 #include <time.h>
 #include <limits>
 
