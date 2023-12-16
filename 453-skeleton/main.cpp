@@ -23,6 +23,7 @@
 //#include "Lighting.h"
 #include "panel.h"
 #include "ClusterVoid.h"
+#include "RayTraceVoxel.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -233,12 +234,14 @@ int main() {
 		glBindVertexArray(voxels_vertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
 
+		// Orientation RGB Display
 		if (panel::renderPipeline == 0) {
 			(*orientationShader).use();
 			GLuint cameraUniform = glGetUniformLocation(GLuint(*orientationShader), "cameraMat");
 			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
 		}
-		else {
+		// Diffraction Grating Display
+		else if (panel::renderPipeline == 1) {
 			(*gratingMaximaShader).use();
 			GLuint cameraUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraMat");
 			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
@@ -273,6 +276,19 @@ int main() {
 			GLuint flagsUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "flags");
 			int flag = panel::useSanders ? 1 : 0;
 			glUniform1i(flagsUniform, flag);
+		}
+		// Ray Trace Display
+		else if (panel::renderPipeline == 2) {
+			(*voxelRayTraceShader).use();
+			GLuint cameraUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraMat");
+			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
+
+			// Pushes the radiance calculation to the shader
+			GLuint radianceUniform = glGetUniformLocation(GLuint(*voxelRayTraceShader), "radiance");
+			glUniform3fv(radianceUniform, 1, glm::value_ptr(RayTraceVoxel(a5->camera,
+				panel::sample_count,
+				panel::max_path_length,
+				vGrid)));
 		}
 		
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());

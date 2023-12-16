@@ -441,7 +441,7 @@ glm::vec3 CalculateRadiance(Ray ray, glm::vec2 seed,
 }
 
 // Main function for ray tracing
-void RayTraceVoxel(Camera cam, 
+glm::vec3 RayTraceVoxel(Camera cam, 
 	int sample_count, 
 	int max_path_length,
 	VoxelGrid<clusterData> vGrid) {
@@ -452,6 +452,13 @@ void RayTraceVoxel(Camera cam,
 		ray.direction = normalize(cam.getDir());
 
 		radiance += CalculateRadiance(ray, seedGen(), max_path_length, vGrid);
-	}	
+	}
+
+	// Compute the average radiance over the samples
+	radiance /= float(sample_count);
+
+	// gamma correction
+	const float gamma = 2.2;
+	return radiance = pow(radiance, glm::vec3(1.0 / gamma));
 }
 
