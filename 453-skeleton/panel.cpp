@@ -36,7 +36,9 @@ bool useSanders = false;
 // Ray Trace samples
 int sample_count = 5;
 int max_path_length = 10;
+float light_emission = 10.f;
 
+// Clipping settings
 bool clippingChanged = false;
 bool bgColourChanged = false;
 bool camSpeedChanged = false;
@@ -101,7 +103,7 @@ void updateMenu() {
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
 
-    if (CollapsingHeader("Grating Rendering Settings")) {
+    if (CollapsingHeader("Rendering Settings")) {
         if (renderPipeline == 1) {
             Spacing();
             DragFloat3("Light Pos", (float*)&lightPos);
@@ -123,6 +125,7 @@ void updateMenu() {
         else if (renderPipeline == 2) {
             Spacing();
             DragFloat3("Light Pos", (float*)&lightPos);
+            SliderFloat("Light Emission Strength", &light_emission, 0.0, 30.0);
 
             Spacing();
             SliderFloat("kd", &kd, 0, 1);

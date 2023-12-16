@@ -447,7 +447,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 				// TODO: Emission should ideally be sampled from the objects in each
 				// of the material functions
 				// the light source is emissive (can put in a value from 0.0-30.0)
-				glm::vec3 emission = glm::vec3(30.0);
+				glm::vec3 emission = glm::vec3(panel::light_emission);
 
 				apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
 			}
