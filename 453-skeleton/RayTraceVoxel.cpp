@@ -371,6 +371,50 @@ glm::vec3 IntersectLight(Ray &ray) {
 	return marchPoint = glm::vec3(-1000);
 }
 
+glm::vec3 Intersect(Ray& ray, VoxelGrid<clusterData>& vGrid) {
+	// Finds the largets dimension of the vGrid to set as the ray march limit
+	int maxVGridDimension = vGrid.getDimensions().x;
+	if (maxVGridDimension < vGrid.getDimensions().y) maxVGridDimension = vGrid.getDimensions().y;
+	if (maxVGridDimension < vGrid.getDimensions().z) maxVGridDimension = vGrid.getDimensions().z;
+
+	glm::vec3 marchPoint = ray.origin;
+	glm::vec3 marchAmount = normalize(ray.direction);
+
+	int marchCountNoHit = 0;
+	int marchCountNoHitMax = 200;
+	float proximityDif = 1.f; // what the diff should be between current ray point and lightPos
+
+	while(marchCountNoHit < marchCountNoHit) {		
+
+		// If the ray march position is in the positives (the voxel grid is all positive)
+		// and is within the voxel grid dimensions
+		if (marchPoint.x >= 0.f && marchPoint.x < vGrid.getDimensions().x
+			&& marchPoint.y >= 0.f && marchPoint.y < vGrid.getDimensions().y
+			&& marchPoint.z >= 0.f && marchPoint.z < vGrid.getDimensions().z) {
+			
+			if (vGrid.at((int)marchPoint.x, (int)marchPoint.y, (int)marchPoint.z).material == Cluster) {
+				//std::cout << "March point hit cluster: " << 
+				//	(int)marchPoint.x << "," << (int)marchPoint.y << ","
+				//	<< (int)marchPoint.z  << std::endl;
+
+				// if the ray has intersected with a cluster, return the ray march point
+				return marchPoint;
+			}
+
+		}
+		else if (marchPoint.x - panel::lightPos.x <= proximityDif &&
+			marchPoint.y - panel::lightPos.y <= proximityDif &&
+			marchPoint.z - panel::lightPos.z <= proximityDif) {
+
+			return marchPoint;
+		}
+		marchCountNoHit++;
+		marchPoint += marchAmount; // Increment the current march point
+	}
+	// if no intersection was found, return a glm::vec3 of -1 
+	return marchPoint = glm::vec3(-1000);
+}
+
 float SphereIntersect(Ray ray, glm::vec3 pos, float radius)
 // ----------------------------------------------------------------------
 // This function, SphereIntersect, calculates the intersection points between
@@ -613,7 +657,7 @@ std::vector<RayAndPixel> getRaysForViewpoint(ImageBuffer& image, Camera& cam) {
 			glm::vec3 direction = glm::normalize(glm::vec3(sin(hFOV), sin(vFOV), -1));
 			Ray r;
 			r.origin = cam.getPos();
-			r.direction = cam.getDir();
+			r.direction = direction;
 			rays.push_back({ r,x,y });
 			vFOV += FOV / image.Height();
 		}
