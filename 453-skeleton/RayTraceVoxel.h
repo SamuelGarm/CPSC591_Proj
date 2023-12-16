@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "ClusterVoid.h"
 #include "panel.h"
+#include "imagebuffer.h"
 #include <time.h>
 #include <limits>
 #include <random>
@@ -12,6 +13,12 @@
 struct Ray {
 	glm::vec3 origin;
 	glm::vec3 direction;
+};
+
+struct RayAndPixel {
+	Ray ray;
+	int x;
+	int y;
 };
 
 // I commented this out and put it in the cpp file as the linker was throwing a fit
@@ -73,6 +80,19 @@ glm::vec3 RayTraceVoxel(
 	Camera& cam,
 	glm::vec2 windowSize,
 	glm::vec2 fragCoord,
+	int sample_count,
+	int max_path_length,
+	VoxelGrid<clusterData>& vGrid);
+
+glm::vec3 RayTraceVoxelV2(
+	Ray ray,
+	int sample_count,
+	int max_path_length,
+	VoxelGrid<clusterData>& vGrid);
+
+void rayTraceImage(
+	ImageBuffer& image,
+	Camera& cam,
 	int sample_count,
 	int max_path_length,
 	VoxelGrid<clusterData>& vGrid);

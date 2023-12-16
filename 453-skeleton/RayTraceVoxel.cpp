@@ -468,6 +468,7 @@ glm::vec3 RayTraceVoxel(
 
 	fRadiance = glm::vec3(0); // clear the radiance vector
 
+
 	// Calculate vectors for camera axes
 	glm::vec3 cy = glm::vec3(0.0, 1.0, 0.0);
 	glm::vec3 cx = normalize(glm::cross(cam.getDir(), cy));
@@ -507,6 +508,71 @@ glm::vec3 RayTraceVoxel(
 	// gamma correction
 	const float gamma = 2.2;
 	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
+}
+
+// Main function for ray tracing - with a ray already passed and calculated for each pixel
+glm::vec3 RayTraceVoxelV2(
+	Ray ray,
+	int sample_count,
+	int max_path_length,
+	VoxelGrid<clusterData>& vGrid) {
+
+	fRadiance = glm::vec3(0); // clear the radiance vector
+
+	for (int i = 0; i != sample_count; i++) {
+		fRadiance += CalculateRadiance(ray, seedGen(), max_path_length, vGrid);
+	}
+
+	// Compute the average radiance over the samples
+	fRadiance /= float(sample_count);
+
+	// gamma correction
+	const float gamma = 2.2;
+	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
+}
+
+// Assigns a pixel with a ray direction 
+std::vector<RayAndPixel> getRaysForViewpoint(ImageBuffer& image, Camera& cam) {
+	std::vector<RayAndPixel> rays;
+
+	const float FOV = M_PI / 4.0f; //45 degree FOV
+
+	float startAngle = -FOV / 2;
+	float endAngle = FOV / 2;
+	float hFOV = startAngle;
+	float vFOV = startAngle;
+
+	for (int x = 0; x < image.Width(); x++) {
+		vFOV = startAngle;
+		for (int y = 0; y < image.Height(); y++) {
+			glm::vec3 direction = glm::normalize(glm::vec3(sin(hFOV), sin(vFOV), -1));
+			Ray r;
+			r.origin = cam.getPos();
+			r.direction = cam.getDir();
+			rays.push_back({ r,x,y });
+			vFOV += FOV / image.Height();
+		}
+		hFOV += FOV / image.Width();
+	}
+	return rays;
+}
+
+// iterates through all of the rays pixel pairs and traces those paths,
+// then assigns them to an image
+void rayTraceImage(
+	ImageBuffer& image, 
+	Camera& cam,
+	int sample_count,
+	int max_path_length,
+	VoxelGrid<clusterData>& vGrid) 
+{
+	image.Initialize();
+	std::vector<RayAndPixel> rays = getRaysForViewpoint(image, cam);
+
+	for (auto const& r : rays) {
+		glm::vec3 color = RayTraceVoxelV2(r.ray, sample_count, max_path_length, vGrid);
+		image.SetPixel(r.x, r.y, color);
+	}
 }
 
 // returns a random pixel in the window space
