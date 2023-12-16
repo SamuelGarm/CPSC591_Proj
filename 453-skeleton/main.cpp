@@ -207,6 +207,7 @@ int main() {
 
 	// Image Buffer for ray tracer
 	ImageBuffer outputImage;
+	outputImage.Initialize();
 
 	double accumulator = 0.0; // The accumulator for the remaining time
 	auto previous_time = std::chrono::steady_clock::now(); // The time of the previous update
@@ -241,17 +242,24 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		using namespace Graphics;
-		glBindVertexArray(voxels_vertexArray);
-		glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
+
 
 		// Orientation RGB Display
 		if (panel::renderPipeline == 0) {
+			glBindVertexArray(voxels_vertexArray);
+			glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
+
 			(*orientationShader).use();
 			GLuint cameraUniform = glGetUniformLocation(GLuint(*orientationShader), "cameraMat");
 			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
+
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());
 		}
 		// Diffraction Grating Display
 		else if (panel::renderPipeline == 1) {
+			glBindVertexArray(voxels_vertexArray);
+			glBindBuffer(GL_ARRAY_BUFFER, voxels_instanceTransformBuffer);
+
 			(*gratingMaximaShader).use();
 			GLuint cameraUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraMat");
 			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
@@ -286,6 +294,8 @@ int main() {
 			GLuint flagsUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "flags");
 			int flag = panel::useSanders ? 1 : 0;
 			glUniform1i(flagsUniform, flag);
+
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());
 		}
 		// Ray Trace Display
 		else if (panel::renderPipeline == 2) {
@@ -318,11 +328,14 @@ int main() {
 			//glUniform3fv(radianceUniform, 1, glm::value_ptr(radiance));
 
 			//frag_x++;
+			glEnable(GL_FRAMEBUFFER_SRGB);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			std::cout << "Raytracing\n";
 			rayTraceImage(outputImage, a5->camera, panel::sample_count, panel::max_path_length, vGrid);
 			outputImage.Render();
+			std::cout << "Raytracing finished\n";
 		}
-		
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());
+	
 
 		if (panel::clippingChanged) {
 			std::cout << "Clipping changed\n";
