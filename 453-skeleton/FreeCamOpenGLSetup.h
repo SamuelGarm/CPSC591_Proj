@@ -36,7 +36,7 @@ namespace Graphics {
 		//Rendering variables
 		orientationShader = new ShaderProgram("shaders/voxel.vert", "shaders/voxel.frag");
 		gratingMaximaShader = new ShaderProgram("shaders/grating.vert", "shaders/grating.frag");
-		voxelRayTraceShader = new ShaderProgram("shaders/voxelTrace.vert", "shaders/voxelTrace.frag");
+		voxelRayTraceShader = new ShaderProgram("shaders/voxeltrace.vert", "shaders/voxeltrace.frag");
 		/*
 		* Setup openGL structures for rendering voxel terrain
 		* There are 2 buffers, one for the vertex geometry and the other storing data such as position that is applied to each voxel instance

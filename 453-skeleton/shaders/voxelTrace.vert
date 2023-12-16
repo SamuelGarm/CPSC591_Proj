@@ -10,9 +10,16 @@ layout (location = 7) in int material;
 uniform mat4 cameraMat;
 uniform vec3 radiance;
 
+out vec3 norm;
+out vec3 FragPos;
 out vec3 vertCol;
+out float alpha;
 
 void main() {
-	gl_Position = cameraMat * instanceMatrix * vec4(in_pos, 1.0);
+	alpha = mat == 0 ? 0 : 1;
 	vertCol = radiance;
+	//vertCol = vec3(0);
+	norm = in_norm;
+	FragPos = vec3(instanceMatrix * vec4(in_pos, 1.0));
+	gl_Position = cameraMat * instanceMatrix * vec4(in_pos, 1.0);
 }
