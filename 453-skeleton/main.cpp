@@ -200,6 +200,8 @@ int main() {
 	glm::vec3 opalCenter = voxelGridSize / 2.f;
 
 	glm::vec2 windowSize = window.getSize();
+	int frag_x = 0;
+	int frag_y = 0;
 
 	double accumulator = 0.0; // The accumulator for the remaining time
 	auto previous_time = std::chrono::steady_clock::now(); // The time of the previous update
@@ -282,17 +284,36 @@ int main() {
 		}
 		// Ray Trace Display
 		else if (panel::renderPipeline == 2) {
+			if (frag_x > windowSize.x) {
+				frag_x = 0; 
+				frag_y++;
+			}
+			if (frag_y > windowSize.y) frag_y = 0;
+			glm::vec2 fragCoord;
+			fragCoord.x = frag_x;
+			fragCoord.y = frag_y;
+
+			std::cout << "fragCoord" << fragCoord.x << "," << fragCoord.y << std::endl;
+
 			(*voxelRayTraceShader).use();
 			GLuint cameraUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraMat");
 			glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
 
 			// Pushes the radiance calculation to the shader
 			GLuint radianceUniform = glGetUniformLocation(GLuint(*voxelRayTraceShader), "radiance");
-			glUniform3fv(radianceUniform, 1, glm::value_ptr(RayTraceVoxel(a5->camera,
+			glm::vec3 radiance = RayTraceVoxel(a5->camera,
 				windowSize,
+				fragCoord,
 				panel::sample_count,
 				panel::max_path_length,
-				vGrid)));
+				vGrid);
+
+			//std::cout << "Radiance: " << radiance.x << "," << radiance.y << "," << radiance.z << std::endl;
+
+			glUniform3fv(radianceUniform, 1, glm::value_ptr(radiance));
+
+			frag_x++;
+			
 		}
 		
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());

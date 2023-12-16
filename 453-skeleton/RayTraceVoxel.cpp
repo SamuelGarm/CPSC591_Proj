@@ -433,6 +433,9 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 				float n_z = intersectPoint.z - (int)intersectPoint.z;
 				glm::vec3 n = normalize(glm::vec3(n_x, n_y, n_z));
 
+				// White light
+				fAcc *= glm::vec3(1.0);
+
 				// generating random numbers for the BRDF
 				time_t seconds;
 				seconds = time(NULL);
@@ -458,6 +461,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 glm::vec3 RayTraceVoxel(
 	Camera &cam,
 	glm::vec2 windowSize,
+	glm::vec2 fragCoord,
 	int sample_count, 
 	int max_path_length,
 	VoxelGrid<clusterData> &vGrid) {
@@ -477,7 +481,7 @@ glm::vec3 RayTraceVoxel(
 	for (int i = 0; i != sample_count; i++) {
 
 		// gets a random pixel - ideally should be the current fragment position
-		glm::vec2 randFrag = getRandPixel(windowSize);
+		//glm::vec2 randFrag = getRandPixel(windowSize);
 		// Random stuff to offset the ray
 		float r1 = rand(seedGen());
 		float dx = r1 * 2.0 - 1.0;
@@ -486,8 +490,8 @@ glm::vec3 RayTraceVoxel(
 
 		// d is the direction of the ray
 		// This changes it every fragment so it's slightly different
-		glm::vec3 d = cx * ((dx + randFrag.x) / windowSize.x - .5f) +
-			cy * ((dy + randFrag.y) / windowSize.y - .5f) +
+		glm::vec3 d = cx * ((dx + fragCoord.x) / windowSize.x - .5f) +
+			cy * ((dy + fragCoord.y) / windowSize.y - .5f) +
 			cam.getDir();
 
 		Ray ray;

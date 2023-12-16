@@ -72,6 +72,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 glm::vec3 RayTraceVoxel(
 	Camera& cam,
 	glm::vec2 windowSize,
+	glm::vec2 fragCoord,
 	int sample_count,
 	int max_path_length,
 	VoxelGrid<clusterData>& vGrid);
