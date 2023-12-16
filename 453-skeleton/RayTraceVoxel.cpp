@@ -515,7 +515,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 
 			glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
 			glm::vec3 n = normalize(intersectPoint - glm::vec3(0));
-			glm::vec3 emission = glm::vec3(0);
+			glm::vec3 emission = glm::vec3(1);
 			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
 		}
 	}
