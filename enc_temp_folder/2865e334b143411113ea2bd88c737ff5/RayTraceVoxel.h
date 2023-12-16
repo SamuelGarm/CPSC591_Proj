@@ -12,8 +12,6 @@ struct Ray {
 	glm::vec3 direction;
 };
 
-// I commented this out and put it in the cpp file as the linker was throwing a fit
-// redefinition issues - if you know how to fix, be my guest
 //glm::vec3 fRadiance;
 
 glm::vec2 seedGen();

@@ -1,5 +1,7 @@
 #include "RayTraceVoxel.h"
 
+glm::vec3 fRadiance;
+
 // Random seed generation for random functions
 glm::vec2 seedGen() {
 	time_t seconds;
@@ -446,19 +448,21 @@ glm::vec3 RayTraceVoxel(Camera cam,
 	int max_path_length,
 	VoxelGrid<clusterData> vGrid) {
 
+	fRadiance = glm::vec3(0); // clear the radiance vector
+
 	for (int i = 0; i != sample_count; i++) {
 		Ray ray;
 		ray.origin = cam.getPos();
 		ray.direction = normalize(cam.getDir());
 
-		radiance += CalculateRadiance(ray, seedGen(), max_path_length, vGrid);
+		fRadiance += CalculateRadiance(ray, seedGen(), max_path_length, vGrid);
 	}
 
 	// Compute the average radiance over the samples
-	radiance /= float(sample_count);
+	fRadiance /= float(sample_count);
 
 	// gamma correction
 	const float gamma = 2.2;
-	return radiance = pow(radiance, glm::vec3(1.0 / gamma));
+	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
 }
 

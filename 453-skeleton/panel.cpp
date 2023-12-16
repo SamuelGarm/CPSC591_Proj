@@ -130,7 +130,7 @@ void updateMenu() {
             SliderFloat("ka", &ka, 0, 1);
 
             InputInt("Sample Count", &sample_count);
-            InputInt("Max Path Length" & max_path_length);
+            InputInt("Max Path Length", & max_path_length);
         }
     }
 
