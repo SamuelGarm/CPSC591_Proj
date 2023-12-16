@@ -234,7 +234,6 @@ void Material_Specular_Glossy_Transparent(
 			ray.direction = reflect(ray.direction, n);
 			ray.direction = normalize(ray.direction);
 			ray.origin = intersectPoint;
-			//fAcc *= RP;     //  multiply with corresponding factors
 			//finalCol += fAcc * obj.emission * RP;
 			finalCol += fAcc * emission * RP;
 
@@ -246,8 +245,7 @@ void Material_Specular_Glossy_Transparent(
 
 			ray.direction = tdir;      // refraction direction b?
 			ray.direction = normalize(ray.direction);
-			ray.origin = intersectPoint;
-			//fAcc *= TP;                 
+			ray.origin = intersectPoint;           
 			//finalCol += fAcc * obj.emission * TP;
 			finalCol += fAcc * emission * TP;
 
@@ -403,9 +401,9 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 			glm::vec3 n = normalize(glm::vec3(n_x,n_y,n_z));
 			
 			// Updates the accumulation by multiplying the objects colour
-			//fAcc *= vGrid.at((int)intersectPoint.x,
-			//	(int)intersectPoint.y,
-			//	(int)intersectPoint.z).incLightWavelength;
+			fAcc *= vGrid.at((int)intersectPoint.x,
+				(int)intersectPoint.y,
+				(int)intersectPoint.z).incLightWavelength.at(0);
 
 			// generating random numbers for the BRDF
 			time_t seconds;

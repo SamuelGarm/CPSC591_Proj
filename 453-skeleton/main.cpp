@@ -179,6 +179,7 @@ int main() {
 	distributeVoidClusters(vGrid, true);
 	//distributeVoidClusterV2(vGrid, 1.f);
 	trimVGrid(vGrid);
+	fillGridRandColours(vGrid);
 		
 	Graphics::setupOpenGL();
 	Graphics::loadVoxelgrid(vGrid);
