@@ -4,16 +4,17 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 #include <vector>
-
+#include "Photon.h"
 
 #include <iostream>
 
 enum Material { Cluster, Void, Empty };
 
 struct clusterData {
-	std::vector<glm::vec3> incLightWavelength;	// Wavelength (colour) of incoming light
-	std::vector<glm::vec3> incLightAmplitude;	// Amplitude (energy) of incoming light
-	std::vector<glm::vec3> incLightDir;			// std vector because multiple incoming lights
+	std::vector<Photon> photons;
+	//std::vector<glm::vec3> incLightWavelength;	// Wavelength (colour) of incoming light
+	//std::vector<glm::vec3> incLightAmplitude;	// Amplitude (energy) of incoming light
+	//std::vector<glm::vec3> incLightDir;			// std vector because multiple incoming lights
 	glm::vec3 orientation = glm::vec3(0.0, 0.0, 0.0); // Orientation of voxel / cluster (euler angle difference from the up vector)
 	Material material = Empty;					// Cluster Type
 };
