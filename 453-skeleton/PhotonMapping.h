@@ -5,8 +5,70 @@
 #include "ClusterVoid.h"
 #include "iostream"
 #include "RayTraceVoxel.h"
+#include <algorithm>
 
-void tracePhoton(Photon& photon, VoxelGrid<clusterData> vGrid) {
+glm::vec3 wavelengthToRGB(float wavelength)
+{
+	float R = 0.f;
+	float G = 0.f;
+	float B = 0.f;
+
+	if (wavelength >= 380.f && wavelength <= 440.f) {
+		float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
+		R = (-(wavelength - 440) / (440 - 380)) * attenuation;
+		G = 0.0;
+		B = 1.0 * attenuation;
+	}
+	else if (wavelength >= 440 && wavelength <= 490) {
+		R = 0.0;
+		G = (wavelength - 440) / (490 - 440);
+		B = 1.0;
+	}
+	else if (wavelength >= 490 && wavelength <= 510) {
+		R = 0.0;
+		G = 1.0;
+		B = -(wavelength - 510) / (510 - 490);
+	}
+	else if (wavelength >= 510 && wavelength <= 580) {
+		R = (wavelength - 510) / (580 - 510);
+		G = 1.0;
+		B = 0.0;
+	}
+	else if (wavelength >= 580 && wavelength <= 645) {
+		R = 1.0;
+		G = -(wavelength - 645) / (645 - 580);
+		B = 0.0;
+	}
+	else if (wavelength >= 645 && wavelength <= 750) {
+		float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
+		R = 1.0 * attenuation;
+		G = 0.0;
+		B = 0.0;
+	}
+	else {
+		R = 0.0;
+		G = 0.0;
+		B = 0.0;
+	}
+
+	return glm::vec3(R, G, B);
+}
+
+glm::vec3 collectRadiance(Ray ray, VoxelGrid<clusterData>& vGrid) {
+	const glm::vec3 intersection= IntersectGrid(ray, vGrid);
+	const clusterData& data = vGrid.at(intersection.x, intersection.y, intersection.z);
+	glm::vec3 finalCol = glm::vec3(0);
+	for (const Photon& photon : data.photons) {
+		finalCol += wavelengthToRGB(photon.wavelength) * 1.f; //1 is a placeholder for intensity
+	}
+	float maxValue = std::max(finalCol.r, std::max(finalCol.g, finalCol.b));
+	if (maxValue > 1) {
+		finalCol /= maxValue; //normalize the range
+	}
+	return finalCol;
+}
+
+void tracePhoton(Photon& photon, VoxelGrid<clusterData>& vGrid) {
 	int iterations = 100;
 	while (iterations > 0) {
 		iterations--;
