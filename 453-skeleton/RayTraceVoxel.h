@@ -13,6 +13,13 @@
 struct Ray {
 	glm::vec3 origin;
 	glm::vec3 direction;
+
+	Ray(glm::vec3 point, glm::vec3 dir) {
+		origin = point;
+		direction = dir;
+	}
+	Ray() : origin(glm::vec3(0, 0, 0)), direction(glm::vec3(0, 0, 0))
+	{}
 };
 
 struct RayAndPixel {
