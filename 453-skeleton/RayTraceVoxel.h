@@ -2,10 +2,12 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "Camera.h"
+#include "Window.h"
 #include "ClusterVoid.h"
 #include "panel.h"
 #include <time.h>
 #include <limits>
+#include <random>
 
 struct Ray {
 	glm::vec3 origin;
@@ -17,7 +19,7 @@ struct Ray {
 //glm::vec3 fRadiance;
 
 glm::vec2 seedGen();
-float rand(glm::vec2 &st);
+float rand(glm::vec2 st);
 
 std::vector<glm::vec3> createLocalFrame(glm::vec3 &n, glm::vec3 &T, glm::vec3 &B);
 glm::vec3 SampleHemisphere(glm::vec3 &n, float r1, float r2);
@@ -67,7 +69,11 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	int max_path_length,
 	VoxelGrid<clusterData> &vGrid);
 
-glm::vec3 RayTraceVoxel(Camera &cam,
+glm::vec3 RayTraceVoxel(
+	Camera& cam,
+	glm::vec2 windowSize,
 	int sample_count,
 	int max_path_length,
-	VoxelGrid<clusterData> &vGrid);
+	VoxelGrid<clusterData>& vGrid);
+
+glm::vec2 getRandPixel(glm::vec2& windowSize);

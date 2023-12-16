@@ -7,13 +7,13 @@ glm::vec2 seedGen() {
 	time_t seconds;
 	seconds = time(NULL);
 	float r1 = seconds;					// TODO: add gl_fragCoord.x + seconds
-	float r2 = sin(float(seconds));     // TODO: add gl_fragCoord.y + sin...
+	float r2 = sin(float(seconds));     // TODO: add gl_fragCoord.y + sin( float(iFrame) );
 
 	return glm::vec2(r1, r2);
 }
 
 // Imported from CPSC 591 A2
-float rand(glm::vec2& st)
+float rand(glm::vec2 st)
 // ----------------------------------------------------------------------
 // Generates pseudo-random numbers using Perlin noise.
 //
@@ -457,17 +457,44 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 }
 
 // Main function for ray tracing
-glm::vec3 RayTraceVoxel(Camera &cam, 
+glm::vec3 RayTraceVoxel(
+	Camera &cam,
+	glm::vec2 windowSize,
 	int sample_count, 
 	int max_path_length,
 	VoxelGrid<clusterData> &vGrid) {
 
 	fRadiance = glm::vec3(0); // clear the radiance vector
 
+	// Calculate vectors for camera axes
+	glm::vec3 cy = glm::vec3(0.0, 1.0, 0.0);
+	glm::vec3 cx = normalize(glm::cross(cam.getDir(), cy));
+	cy = normalize(glm::cross(cam.getDir(), cx));
+	cx *= windowSize.x / windowSize.y;
+	cx *= 0.8;
+	cy *= -0.8;
+
+	float camOffset = 10.f;
+
 	for (int i = 0; i != sample_count; i++) {
+
+		// gets a random pixel - ideally should be the current fragment position
+		glm::vec2 randFrag = getRandPixel(windowSize);
+		// Random stuff to offset the ray
+		float r1 = rand(seedGen());
+		float dx = r1 * 2.0 - 1.0;
+		float r2 = rand(seedGen() + glm::vec2(1.0, 0.0));
+		float dy = r2 * 2.0 - 1.0;
+
+		// d is the direction of the ray
+		// This changes it every fragment so it's slightly different
+		glm::vec3 d = cx * ((dx + randFrag.x) / windowSize.x - .5f) +
+			cy * ((dy + randFrag.y) / windowSize.y - .5f) +
+			cam.getDir();
+
 		Ray ray;
-		ray.origin = cam.getPos();
-		ray.direction = normalize(cam.getDir());
+		ray.origin = cam.getPos()+d*camOffset;
+		ray.direction = normalize(d);
 
 		fRadiance += CalculateRadiance(ray, seedGen(), max_path_length, vGrid);
 	}
@@ -480,3 +507,19 @@ glm::vec3 RayTraceVoxel(Camera &cam,
 	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
 }
 
+// returns a random pixel in the window space
+glm::vec2 getRandPixel(glm::vec2 &windowSize) {
+	glm::vec2 pixels;
+
+	std::random_device rd; // obtain a random number from hardware
+	std::mt19937 gen(rd()); // seed the generator
+	std::uniform_int_distribution<> distrx(0, windowSize.x); // define the range
+
+	pixels.x = (distrx(gen));
+
+	std::uniform_int_distribution<> distry(0, windowSize.y); // define the range
+
+	pixels.y = (distry(gen));
+
+	return pixels;
+}

@@ -198,6 +198,8 @@ int main() {
 
 	glm::vec3 opalCenter = voxelGridSize / 2.f;
 
+	glm::vec2 windowSize = window.getSize();
+
 	double accumulator = 0.0; // The accumulator for the remaining time
 	auto previous_time = std::chrono::steady_clock::now(); // The time of the previous update
 	double frameTime = 1.f;
@@ -286,6 +288,7 @@ int main() {
 			// Pushes the radiance calculation to the shader
 			GLuint radianceUniform = glGetUniformLocation(GLuint(*voxelRayTraceShader), "radiance");
 			glUniform3fv(radianceUniform, 1, glm::value_ptr(RayTraceVoxel(a5->camera,
+				windowSize,
 				panel::sample_count,
 				panel::max_path_length,
 				vGrid)));
