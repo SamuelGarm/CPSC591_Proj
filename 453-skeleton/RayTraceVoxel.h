@@ -14,6 +14,9 @@ struct Ray {
 	glm::vec3 direction;
 };
 
+glm::vec2 seedGen();
+float rand(glm::vec2 st);
+
 std::vector<glm::vec3> createLocalFrame(glm::vec3 n, glm::vec3 T, glm::vec3 B);
 glm::vec3 SampleHemisphere(glm::vec3 n, float r1, float r2);
 
@@ -66,6 +69,3 @@ void RayTraceVoxel(Camera cam,
 	int sample_count,
 	int max_path_length,
 	VoxelGrid<clusterData> vGrid);
-
-glm::vec2 seedGen();
-float rand(glm::vec2 st);

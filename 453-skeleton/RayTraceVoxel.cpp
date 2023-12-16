@@ -1,5 +1,46 @@
 #include "RayTraceVoxel.h"
 
+// Random seed generation for random functions
+glm::vec2 seedGen() {
+	time_t seconds;
+	seconds = time(NULL);
+	float r1 = seconds;					// TODO: add gl_fragCoord.x + seconds
+	float r2 = sin(float(seconds));     // TODO: add gl_fragCoord.y + sin...
+
+	return glm::vec2(r1, r2);
+}
+
+
+// Imported from CPSC 591 A2
+float rand(glm::vec2 st)
+// ----------------------------------------------------------------------
+// Generates pseudo-random numbers using Perlin noise.
+//
+// Parameters:
+// - st: A 2D vector used as a seed for the random number generation.
+// ----------------------------------------------------------------------
+{
+	// Use Perlin noise for randomness
+
+	// Calculate a dot product between 
+	//the input vector 'st.xy' and a constant 
+	// vector 'vec2(12.9898, 78.233)'.
+	// This dot product is a key step in generating random-like values.
+	float dotProduct = glm::dot(st, glm::vec2(12.9898, 78.233));
+
+	// Calculate the sine of the dot product and 
+	// take its fractional part using 'fract'.
+	// The sine function introduces non-linearity, adding randomness.
+	float sineValue = sin(dotProduct);
+
+	// Multiply the sine value by a large constant '43758.5453' to 
+	// increase the range and distribution of values.
+	float scaledValue = sineValue * 43758.5453;
+
+	// Return the result, which should be a pseudo-random value in the range [0, 1).
+	return glm::fract(scaledValue);
+}
+
 // Imported from CPSC 591 - A2 with openGL modifications
 // This function creates a local frame (tangent, bitangent, normal) based 
 // on a given normal vector 'N'.
@@ -396,6 +437,7 @@ glm::vec3 CalculateRadiance(Ray ray, glm::vec2 seed,
 			}
 		}
 	}
+	return finalCol;
 }
 
 // Main function for ray tracing
@@ -413,43 +455,3 @@ void RayTraceVoxel(Camera cam,
 	}	
 }
 
-// Random seed generation for random functions
-glm::vec2 seedGen() {
-	time_t seconds;
-	seconds = time(NULL);
-	float r1 = seconds;					// TODO: add gl_fragCoord.x + seconds
-	float r2 = sin(float(seconds));     // TODO: add gl_fragCoord.y + sin...
-
-	return glm::vec2(r1, r2);
-}
-
-
-// Imported from CPSC 591 A2
-float rand(glm::vec2 st)
-// ----------------------------------------------------------------------
-// Generates pseudo-random numbers using Perlin noise.
-//
-// Parameters:
-// - st: A 2D vector used as a seed for the random number generation.
-// ----------------------------------------------------------------------
-{
-	// Use Perlin noise for randomness
-
-	// Calculate a dot product between 
-	//the input vector 'st.xy' and a constant 
-	// vector 'vec2(12.9898, 78.233)'.
-	// This dot product is a key step in generating random-like values.
-	float dotProduct = glm::dot(st, glm::vec2(12.9898, 78.233));
-
-	// Calculate the sine of the dot product and 
-	// take its fractional part using 'fract'.
-	// The sine function introduces non-linearity, adding randomness.
-	float sineValue = sin(dotProduct);
-
-	// Multiply the sine value by a large constant '43758.5453' to 
-	// increase the range and distribution of values.
-	float scaledValue = sineValue * 43758.5453;
-
-	// Return the result, which should be a pseudo-random value in the range [0, 1).
-	return glm::fract(scaledValue);
-}
