@@ -407,6 +407,7 @@ void Photon_map::balance(void)
 	}
 	half_stored_photons = stored_photons / 2 - 1;
 }
+
 #define swap(ph,a,b) { Photon *ph2=ph[a]; ph[a]=ph[b]; ph[b]=ph2; }
 // median_split splits the photon array into two separate
 // pieces around the median, with all photons below

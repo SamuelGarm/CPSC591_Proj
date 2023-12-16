@@ -33,6 +33,10 @@ float d = 700.f;
 float particleDiameter = 1500; //measured in Å
 bool useSanders = false;
 
+// Ray Trace samples
+int sample_count = 5;
+int max_path_length = 10;
+
 bool clippingChanged = false;
 bool bgColourChanged = false;
 bool camSpeedChanged = false;
@@ -98,30 +102,45 @@ void updateMenu() {
     }
 
     if (CollapsingHeader("Grating Rendering Settings")) {
-      Spacing();
-      DragFloat3("Light Pos", (float*)&lightPos);
+        if (renderPipeline == 1) {
+            Spacing();
+            DragFloat3("Light Pos", (float*)&lightPos);
 
-      Spacing();
-      SliderFloat("kd", &kd, 0, 1);
-      SliderFloat("ks", &ks, 0, 1);
-      SliderFloat("ka", &ka, 0, 1);
+            Spacing();
+            SliderFloat("kd", &kd, 0, 1);
+            SliderFloat("ks", &ks, 0, 1);
+            SliderFloat("ka", &ka, 0, 1);
 
-      Spacing();
-      SliderFloat("Grating spacing", &d, 400, 4000);
+            Spacing();
+            SliderFloat("Grating spacing", &d, 400, 4000);
 
-      Spacing();
-      SliderFloat("Body color (black to white)", &bodyCol, 0, 1);
+            Spacing();
+            SliderFloat("Body color (black to white)", &bodyCol, 0, 1);
 
-      Checkbox("Use Sanders", &useSanders);
-      SliderFloat("Particle Diameter (Å) (usually 1500-4000)", &particleDiameter, 1500, 4000); // 1500 - 4000
+            Checkbox("Use Sanders", &useSanders);
+            SliderFloat("Particle Diameter (Å) (usually 1500-4000)", &particleDiameter, 1500, 4000); // 1500 - 4000
+        }
+        else if (renderPipeline == 2) {
+            Spacing();
+            DragFloat3("Light Pos", (float*)&lightPos);
+
+            Spacing();
+            SliderFloat("kd", &kd, 0, 1);
+            SliderFloat("ks", &ks, 0, 1);
+            SliderFloat("ka", &ka, 0, 1);
+
+            InputInt("Sample Count", &sample_count);
+            InputInt("Max Path Length", & max_path_length);
+        }
     }
 
 
     Spacing();
-    const char* items[] = { "Orientation", "Grating" };
+    const char* items[] = { "Orientation", "Grating", "Ray Trace"};
     //Combo("RenderingPipeline", &renderPipeline, items, 2);
     RadioButton(items[0], &renderPipeline, 0); ImGui::SameLine();
-    RadioButton(items[1], &renderPipeline, 1);
+    RadioButton(items[1], &renderPipeline, 1); ImGui::SameLine();
+    RadioButton(items[2], &renderPipeline, 2);
 
     Spacing();
     const char* clustGenNames[] = {"Linear Random","Exp Dist Sphere"};

@@ -36,6 +36,10 @@ extern float d;
 extern float particleDiameter;
 extern bool useSanders;
 
+// Ray Trace Samples
+extern int sample_count;
+extern int max_path_length;
+
 //camera controls
 extern bool camSpeedChanged;
 extern float camSpeed;

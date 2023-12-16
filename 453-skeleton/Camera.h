@@ -13,6 +13,7 @@ public:
 
 	glm::mat4 getView();
 	glm::vec3 getPos();
+	glm::vec3 getDir();
 	void setPos(glm::vec3 _position);
 	void panHorizontal(float _amount); //angle on the plane defiend by up vector
 	void panVertical(float _amount); //elevation angle of the camera
