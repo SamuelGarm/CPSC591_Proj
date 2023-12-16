@@ -4,10 +4,28 @@
 #include "Photon.h"
 #include "ClusterVoid.h"
 #include "iostream"
+#include "RayTraceVoxel.h"
+
+void tracePhoton(Photon& photon, VoxelGrid<clusterData> vGrid) {
+	int iterations = 100;
+	while (iterations > 0) {
+		iterations--;
+		Ray photonRay = { photon.pos, photon.dir };
+		//calculate intersection with the cluster
+		glm::vec3 intersection = IntersectGrid(photonRay, vGrid);
+		if (intersection.x == -1 && intersection.y == -1 && intersection.z == -1) {
+			break;
+		}
+		clusterData data = vGrid.at(intersection.x, intersection.y, intersection.z);
+		data.photons.push_back(photon); //store the incoming direction of the photon
+		//rotate the unit axis and find which one has the smallest dot product
+		handleIntersection(photon, glm::vec3(1, 0, 0), 900);
+	}
+}
 
 void handleIntersection(Photon& photon, glm::vec3 surfaceNorm, const int gratingPeriod) {
-	//handle only rank 0 for now
-
+	//handle only rank 0 reflection for now
+	DiffractPhoton(photon, surfaceNorm, gratingPeriod, false, 0);
 }
 
 void DiffractPhoton(Photon& photon, glm::vec3 surfaceNorm, const int gratingPeriod, const bool transmissive, const int rank) {
