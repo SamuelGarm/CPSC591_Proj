@@ -320,6 +320,7 @@ int main() {
 			//frag_x++;
 			rayTraceImage(outputImage, a5->camera, panel::sample_count, panel::max_path_length, vGrid);
 			outputImage.Render();
+			std::cout << "Rendering image" << std::endl;
 		}
 		
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instancedClusterRenderData.size());

@@ -319,10 +319,10 @@ glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
 
 
 	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = ray.direction * 0.5f;
+	glm::vec3 marchAmount = normalize(ray.direction);
 	// Marches along the ray in quarter increments to find a voxel intersection
 	// (voxels are unit size)
-	for (float i = 0.f; i < maxVGridDimension; i += 0.25f) {
+	for (int i = 0.f; i < maxVGridDimension; i ++) {
 		// If the ray march position is in the positives (the voxel grid is all positive)
 		// and is within the voxel grid dimensions
 		if (marchPoint.x >= 0.f && marchPoint.x < vGrid.getDimensions().x
@@ -352,7 +352,7 @@ glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
 // function to check if there's an intersection with the light
 glm::vec3 IntersectLight(Ray &ray) {
 	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = ray.direction * 0.25f;
+	glm::vec3 marchAmount = normalize(ray.direction);
 
 	float marchLimit = 100.f; // the limit of how many times the ray should march
 	float proximityDif = 1.f; // what the diff should be between current ray point and lightPos
@@ -371,6 +371,55 @@ glm::vec3 IntersectLight(Ray &ray) {
 	return marchPoint = glm::vec3(-1000);
 }
 
+float SphereIntersect(Ray ray, glm::vec3 pos, float radius)
+// ----------------------------------------------------------------------
+// This function, SphereIntersect, calculates the intersection points between
+// a ray and a sphere.
+//
+// Parameters:
+// - ray:    A Ray structure representing the ray to be tested for intersection.   
+// - pos:    The position (center) of the sphere.
+// - radius: The radius of the sphere.
+//
+// Returns:
+// - A float representing the distance along the ray where the intersection
+//   occurs or 0.0 if there's no intersection.
+// -----------------------------------------------------------------------
+{
+	// Calculate the vector from the ray's origin to the sphere's center.
+	glm::vec3 op = pos - ray.origin;
+
+	// A small epsilon value for numerical stability.
+	float eps = 0.01;
+
+	// Calculate the 'b' parameter in the quadratic equation.
+	float b = dot(op, ray.direction);
+
+	// Calculate the discriminant of the quadratic equation.
+	float det = b * b - dot(op, op) + radius * radius;
+
+	// If the discriminant is negative, there is no intersection.
+	if (det < 0.0) return 0.0;
+
+	// Compute the square root of the discriminant.
+	det = sqrt(det);
+
+	// Calculate the first intersection point, t1.
+	float t1 = b - det;
+
+	// If t1 is greater than the epsilon value, it's a valid intersection.
+	if (t1 > eps) return t1;
+
+	// Calculate the second intersection point, t2.
+	float t2 = b + det;
+
+	// If t2 is greater than the epsilon value, it's a valid intersection.
+	if (t2 > eps) return t2;
+
+	// If no valid intersection points were found, return 0.0.
+	return 0.0;
+}
+
 // Function to calculate final radiance 
 glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed, 
 	int max_path_length, 
@@ -380,31 +429,81 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	glm::vec3 fAcc = glm::vec3(1.0);     // Initialize final accumulated reflectance factor to white.
 
 	for (int i = 0; i != max_path_length; i++) {
-		// Checks intersection with opal voxel grid
-		glm::vec3 intersectPoint = IntersectGrid(ray, vGrid);
-		// if an intersection was found with the opal voxel grid
-		// (as in the function returned a vlue other than -1)
-		
-		//std::cout << "Intersect Point: " << intersectPoint.x << ","
-		//	<< intersectPoint.y << "," << intersectPoint.z << std::endl;
+		//// Checks intersection with opal voxel grid
+		//glm::vec3 intersectPoint = IntersectGrid(ray, vGrid);
+		//// if an intersection was found with the opal voxel grid
+		//// (as in the function returned a vlue other than -1)
+		//
+		////std::cout << "Intersect Point: " << intersectPoint.x << ","
+		////	<< intersectPoint.y << "," << intersectPoint.z << std::endl;
 
-		if (intersectPoint != glm::vec3(-1)) {
-			//std::cout << "cluster hit" << std::endl;
-			
-			// Calculating the normal at the intersection point
-			// I'm honestly not sure why this works, its what's in CPSC 591 A2 in
-			// CalculateRadiance() 
-			// vec3 n = normalize(p - obj.position);  // Normal at the intersection point.
-			float n_x = intersectPoint.x - (int)intersectPoint.x;
-			float n_y = intersectPoint.y - (int)intersectPoint.y;
-			float n_z = intersectPoint.z - (int)intersectPoint.z;
-			glm::vec3 n = normalize(glm::vec3(n_x,n_y,n_z));
-			
-			// Updates the accumulation by multiplying the objects colour
-			fAcc *= vGrid.at((int)intersectPoint.x,
-				(int)intersectPoint.y,
-				(int)intersectPoint.z).incLightWavelength.at(0);
+		//if (intersectPoint != glm::vec3(-1)) {
+		//	//std::cout << "cluster hit" << std::endl;
+		//	
+		//	// Calculating the normal at the intersection point
+		//	// I'm honestly not sure why this works, its what's in CPSC 591 A2 in
+		//	// CalculateRadiance() 
+		//	// vec3 n = normalize(p - obj.position);  // Normal at the intersection point.
+		//	float n_x = intersectPoint.x - (int)intersectPoint.x;
+		//	float n_y = intersectPoint.y - (int)intersectPoint.y;
+		//	float n_z = intersectPoint.z - (int)intersectPoint.z;
+		//	glm::vec3 n = normalize(glm::vec3(n_x,n_y,n_z));
+		//	
+		//	// Updates the accumulation by multiplying the objects colour
+		//	fAcc *= vGrid.at((int)intersectPoint.x,
+		//		(int)intersectPoint.y,
+		//		(int)intersectPoint.z).incLightWavelength.at(0);
 
+		//	// generating random numbers for the BRDF
+		//	time_t seconds;
+		//	seconds = time(NULL);
+		//	float r1 = rand(seed);
+		//	seed.x = sin(r1 - float(seconds));
+		//	float r2 = rand(seed);
+		//	seconds = time(NULL);
+		//	seed.y = sin(r2 + float(seconds));
+
+		//	// TODO: Emission should ideally be sampled from the objects in each
+		//	// of the material functions
+		//	// The opal is not emissive 
+		//	glm::vec3 emission = glm::vec3(0);
+
+		//	apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
+		//}
+		//else {
+		//	//std::cout << "Light hit" << std::endl;
+		//	
+		//	// Checks intersection with light
+		//	intersectPoint = IntersectLight(ray);
+		//	// if intersection with light was found
+		//	if (intersectPoint != glm::vec3(-1000)) {
+		//		float n_x = intersectPoint.x - (int)intersectPoint.x;
+		//		float n_y = intersectPoint.y - (int)intersectPoint.y;
+		//		float n_z = intersectPoint.z - (int)intersectPoint.z;
+		//		glm::vec3 n = normalize(glm::vec3(n_x, n_y, n_z));
+
+		//		// White light
+		//		fAcc *= glm::vec3(1.0);
+
+		//		// generating random numbers for the BRDF
+		//		time_t seconds;
+		//		seconds = time(NULL);
+		//		float r1 = rand(seed);
+		//		seed.x = sin(r1 - float(seconds));
+		//		float r2 = rand(seed);
+		//		seconds = time(NULL);
+		//		seed.y = sin(r2 + float(seconds));
+
+		//		// TODO: Emission should ideally be sampled from the objects in each
+		//		// of the material functions
+		//		// the light source is emissive (can put in a value from 0.0-30.0)
+		//		glm::vec3 emission = glm::vec3(panel::light_emission);
+
+		//		apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
+		//	}
+		//}
+		float hitDist = SphereIntersect(ray, glm::vec3(0), 10.f);
+		if (hitDist != 0.0) {
 			// generating random numbers for the BRDF
 			time_t seconds;
 			seconds = time(NULL);
@@ -414,44 +513,10 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 			seconds = time(NULL);
 			seed.y = sin(r2 + float(seconds));
 
-			// TODO: Emission should ideally be sampled from the objects in each
-			// of the material functions
-			// The opal is not emissive 
+			glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
+			glm::vec3 n = normalize(intersectPoint - glm::vec3(0));
 			glm::vec3 emission = glm::vec3(0);
-
 			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
-		}
-		else {
-			//std::cout << "Light hit" << std::endl;
-			
-			// Checks intersection with light
-			intersectPoint = IntersectLight(ray);
-			// if intersection with light was found
-			if (intersectPoint != glm::vec3(-1000)) {
-				float n_x = intersectPoint.x - (int)intersectPoint.x;
-				float n_y = intersectPoint.y - (int)intersectPoint.y;
-				float n_z = intersectPoint.z - (int)intersectPoint.z;
-				glm::vec3 n = normalize(glm::vec3(n_x, n_y, n_z));
-
-				// White light
-				fAcc *= glm::vec3(1.0);
-
-				// generating random numbers for the BRDF
-				time_t seconds;
-				seconds = time(NULL);
-				float r1 = rand(seed);
-				seed.x = sin(r1 - float(seconds));
-				float r2 = rand(seed);
-				seconds = time(NULL);
-				seed.y = sin(r2 + float(seconds));
-
-				// TODO: Emission should ideally be sampled from the objects in each
-				// of the material functions
-				// the light source is emissive (can put in a value from 0.0-30.0)
-				glm::vec3 emission = glm::vec3(panel::light_emission);
-
-				apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
-			}
 		}
 	}
 	return finalCol;
@@ -572,6 +637,7 @@ void rayTraceImage(
 	for (auto const& r : rays) {
 		glm::vec3 color = RayTraceVoxelV2(r.ray, sample_count, max_path_length, vGrid);
 		image.SetPixel(r.x, r.y, color);
+		//std::cout << "colour: " << color.x << "," << color.y << "," << color.z << std::endl;
 	}
 }
 

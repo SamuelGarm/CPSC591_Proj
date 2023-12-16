@@ -71,6 +71,8 @@ void apply_BRDF(
 
 glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid);
 glm::vec3 IntersectLight(Ray &ray);
+float SphereIntersect(Ray ray, glm::vec3 pos, float radius);
+
 
 glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	int max_path_length,

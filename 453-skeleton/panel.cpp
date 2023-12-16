@@ -34,8 +34,8 @@ float particleDiameter = 1500; //measured in Å
 bool useSanders = false;
 
 // Ray Trace samples
-int sample_count = 5;
-int max_path_length = 10;
+int sample_count = 1;
+int max_path_length = 1;
 float light_emission = 10.f;
 
 // Clipping settings
