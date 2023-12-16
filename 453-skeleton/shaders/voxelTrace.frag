@@ -7,7 +7,7 @@ in vec3 vertCol;
 in float alpha;
 
 void main() {
-	if(alpha == 0)
-		discard;
+	//if(alpha == 0)
+	//	discard;
 	color = vec4(vertCol,1);
 }

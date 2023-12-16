@@ -14,7 +14,7 @@ glm::vec2 seedGen() {
 
 
 // Imported from CPSC 591 A2
-float rand(glm::vec2 st)
+float rand(glm::vec2& st)
 // ----------------------------------------------------------------------
 // Generates pseudo-random numbers using Perlin noise.
 //
@@ -51,7 +51,7 @@ float rand(glm::vec2 st)
 // - T: An 'out' parameter to store the tangent vector.
 // - B: An 'out' parameter to store the bitangent vector.
 //It calculates and sets 'T' and 'B'. returns T&B in a vector
-std::vector<glm::vec3> createLocalFrame(glm::vec3 n, glm::vec3 T, glm::vec3 B) {
+std::vector<glm::vec3> createLocalFrame(glm::vec3& n, glm::vec3& T, glm::vec3& B) {
 	glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
 	T = cross(up, n);
 	T = normalize(T);
@@ -76,7 +76,7 @@ std::vector<glm::vec3> createLocalFrame(glm::vec3 n, glm::vec3 T, glm::vec3 B) {
 //
 // Returns:
 // - A 3D vector representing the sampled direction in world space.
-glm::vec3 SampleHemisphere(glm::vec3 n, float r1, float r2) {
+glm::vec3 SampleHemisphere(glm::vec3& n, float r1, float r2) {
 	float phi = r1 * 2.0 * M_PI;     // phi is in [0,360)   // Azimuthal Angle
 	float cosTheta = sqrt(1.0 - r2); // theta is in [0,180] // Polar Angle
 	//float sineTheta = sqrt(r2) // Uniformly distributed sine
@@ -86,8 +86,8 @@ glm::vec3 SampleHemisphere(glm::vec3 n, float r1, float r2) {
 	float y = sinTheta * sin(phi);
 	float z = cosTheta;
 
-	glm::vec3 T;
-	glm::vec3 B;
+	glm::vec3 T = glm::vec3(0);
+	glm::vec3 B = glm::vec3(0);
 	std::vector<glm::vec3> TBList = createLocalFrame(n, T, B);
 	T = TBList.at(0);
 	B = TBList.at(1);
@@ -102,14 +102,14 @@ glm::vec3 SampleHemisphere(glm::vec3 n, float r1, float r2) {
 
 // Imported from CPSC 591 - A2 with openGL modifications
 void Material_Diffuse(
-	Ray ray,				   // The current ray to be modified.
-	glm::vec3 intersectPoint,  // The intersection point in world space.
-	glm::vec3 n,               // The normal at the intersection point.
+	Ray& ray,				   // The current ray to be modified.
+	glm::vec3& intersectPoint,  // The intersection point in world space.
+	glm::vec3& n,               // The normal at the intersection point.
 	float r1,                  // A random value for polar angle.
 	float r2,                  // A random value for azimuthal angle.
-	glm::vec3 fAcc,            // Accumulated reflectance factor.
-	glm::vec3 emission,        // The emissiveness of the object at the point
-	glm::vec3 finalCol)        // The final radiance color to be modified.
+	glm::vec3& fAcc,            // Accumulated reflectance factor.
+	glm::vec3& emission,        // The emissiveness of the object at the point
+	glm::vec3& finalCol)        // The final radiance color to be modified.
 {  
 
 	// if the dot product of n and ray.direction is negative, flip the normal
@@ -129,12 +129,12 @@ void Material_Diffuse(
 
 // Imported from CPSC 591 - A2 with openGL modifications
 void Material_Specular_Glossy(
-	Ray ray,							// The current ray to be modified.
-	glm::vec3 intersectPoint,           // The intersection point in world space.  
-	glm::vec3 n,                        // The normal at the intersection point.
-	glm::vec3 fAcc,                     // Accumulated reflectance factor.
-	glm::vec3 emission,                 // The emissiveness of the object at the point
-	glm::vec3 finalCol)                 // The final radiance color to be modified.
+	Ray& ray,							// The current ray to be modified.
+	glm::vec3& intersectPoint,           // The intersection point in world space.  
+	glm::vec3& n,                        // The normal at the intersection point.
+	glm::vec3& fAcc,                     // Accumulated reflectance factor.
+	glm::vec3& emission,                 // The emissiveness of the object at the point
+	glm::vec3& finalCol)                 // The final radiance color to be modified.
 {
 	
 	ray.direction = reflect(ray.direction, n);   //reflect the ray
@@ -145,13 +145,13 @@ void Material_Specular_Glossy(
 
 // Imported from CPSC 591 - A2 with openGL modifications
 void Material_Specular_Glossy_Transparent(
-	Ray ray,						// Current ray to be modified.
-	glm::vec3 intersectPoint,       // Intersection point in world space.
-	glm::vec3 n,                    // Normal at the intersection point.
-	glm::vec2 seed,                 // Random number generator seed.
-	glm::vec3 fAcc,                 // Accumulated reflectance factor.
-	glm::vec3 emission,             // The emissiveness of the object at the point
-	glm::vec3 finalCol)             // Final radiance color to be modified.
+	Ray& ray,						// Current ray to be modified.
+	glm::vec3 &intersectPoint,       // Intersection point in world space.
+	glm::vec3 &n,                    // Normal at the intersection point.
+	glm::vec2 &seed,                 // Random number generator seed.
+	glm::vec3 &fAcc,                 // Accumulated reflectance factor.
+	glm::vec3& emission,             // The emissiveness of the object at the point
+	glm::vec3& finalCol)             // Final radiance color to be modified.
 { 
 
 	//Ray reflRay = Ray(p, ray.direction - n * 2.0 * dot(n, ray.direction));
@@ -258,15 +258,15 @@ void Material_Specular_Glossy_Transparent(
 }
 
 void apply_BRDF(
-	Ray ray,					// The current ray to be modified.
-	glm::vec3 intersectPoint,   // Intersection point.
-	glm::vec3 n,				// Normal at the intersection point.
+	Ray &ray,					// The current ray to be modified.
+	glm::vec3 &intersectPoint,   // Intersection point.
+	glm::vec3 &n,				// Normal at the intersection point.
 	float r1,					// Corrected normal direction.
 	float r2,					// Random value for BRDF.
-	glm::vec2 seed,				// Random seed for BRDF.
-	glm::vec3 fAcc,				// Accumulated reflectance factor.
-	glm::vec3 emission,		    // The emissiveness of the object at the point
-	glm::vec3 finalCol)			// Final radiance color.
+	glm::vec2 &seed,				// Random seed for BRDF.
+	glm::vec3 &fAcc,				// Accumulated reflectance factor.
+	glm::vec3 &emission,		    // The emissiveness of the object at the point
+	glm::vec3 &finalCol)			// Final radiance color.
 {
 
 	// Corrected normal direction
@@ -307,7 +307,7 @@ void apply_BRDF(
 }
 
 // Function to check if there's an interesction with the opal voxel grid
-glm::vec3 IntersectGrid(Ray ray, VoxelGrid<clusterData> vGrid) {
+glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
 	// Initialize a variable to hold the closest itersection distance
 	//float d;
 
@@ -346,7 +346,7 @@ glm::vec3 IntersectGrid(Ray ray, VoxelGrid<clusterData> vGrid) {
 }
 
 // function to check if there's an intersection with the light
-glm::vec3 IntersectLight(Ray ray) {
+glm::vec3 IntersectLight(Ray &ray) {
 	glm::vec3 marchPoint = ray.origin;
 	glm::vec3 marchAmount = ray.direction * 0.25f;
 
@@ -368,9 +368,9 @@ glm::vec3 IntersectLight(Ray ray) {
 }
 
 // Function to calculate final radiance 
-glm::vec3 CalculateRadiance(Ray ray, glm::vec2 seed, 
+glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed, 
 	int max_path_length, 
-	VoxelGrid<clusterData> vGrid) {
+	VoxelGrid<clusterData> &vGrid) {
 
 	glm::vec3 finalCol = glm::vec3(0);   // Initialize final colour to black
 	glm::vec3 fAcc = glm::vec3(1.0);     // Initialize final accumulated reflectance factor to white.
@@ -443,10 +443,10 @@ glm::vec3 CalculateRadiance(Ray ray, glm::vec2 seed,
 }
 
 // Main function for ray tracing
-glm::vec3 RayTraceVoxel(Camera cam, 
+glm::vec3 RayTraceVoxel(Camera &cam, 
 	int sample_count, 
 	int max_path_length,
-	VoxelGrid<clusterData> vGrid) {
+	VoxelGrid<clusterData> &vGrid) {
 
 	fRadiance = glm::vec3(0); // clear the radiance vector
 

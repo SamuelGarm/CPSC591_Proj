@@ -16,7 +16,7 @@ out vec3 vertCol;
 out float alpha;
 
 void main() {
-	alpha = mat == 0 ? 0 : 1;
+	alpha = material == 0 ? 0 : 1;
 	vertCol = radiance;
 	//vertCol = vec3(0);
 	norm = in_norm;
