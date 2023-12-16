@@ -12,7 +12,6 @@ glm::vec2 seedGen() {
 	return glm::vec2(r1, r2);
 }
 
-
 // Imported from CPSC 591 A2
 float rand(glm::vec2& st)
 // ----------------------------------------------------------------------
@@ -322,7 +321,7 @@ glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
 
 
 	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = ray.direction * 0.25f;
+	glm::vec3 marchAmount = ray.direction * 0.5f;
 	// Marches along the ray in quarter increments to find a voxel intersection
 	// (voxels are unit size)
 	for (float i = 0.f; i < maxVGridDimension; i += 0.25f) {
@@ -332,9 +331,16 @@ glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
 			&& marchPoint.y >= 0.f && marchPoint.y < vGrid.getDimensions().y
 			&& marchPoint.z >= 0.f && marchPoint.z < vGrid.getDimensions().z) {
 
+			//std::cout << "March point: " << marchPoint.x << "," << marchPoint.y << ","
+			//	<< marchPoint.z << std::endl;
+
 			// check what material of the voxel the ray has intersected with
 			// if it's a cluster
 			if (vGrid.at((int)marchPoint.x, (int)marchPoint.y, (int)marchPoint.z).material == Cluster) {
+				//std::cout << "March point hit cluster: " << 
+				//	(int)marchPoint.x << "," << (int)marchPoint.y << ","
+				//	<< (int)marchPoint.z  << std::endl;
+				
 				// if the ray has intersected with a cluster, return the ray march point
 				return marchPoint;
 			}
@@ -380,7 +386,13 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		glm::vec3 intersectPoint = IntersectGrid(ray, vGrid);
 		// if an intersection was found with the opal voxel grid
 		// (as in the function returned a vlue other than -1)
+		
+		//std::cout << "Intersect Point: " << intersectPoint.x << ","
+		//	<< intersectPoint.y << "," << intersectPoint.z << std::endl;
+
 		if (intersectPoint != glm::vec3(-1)) {
+			//std::cout << "cluster hit" << std::endl;
+			
 			// Calculating the normal at the intersection point
 			// I'm honestly not sure why this works, its what's in CPSC 591 A2 in
 			// CalculateRadiance() 
@@ -412,6 +424,8 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
 		}
 		else {
+			//std::cout << "Light hit" << std::endl;
+			
 			// Checks intersection with light
 			intersectPoint = IntersectLight(ray);
 			// if intersection with light was found
@@ -433,7 +447,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 				// TODO: Emission should ideally be sampled from the objects in each
 				// of the material functions
 				// the light source is emissive (can put in a value from 0.0-30.0)
-				glm::vec3 emission = glm::vec3(1.0);
+				glm::vec3 emission = glm::vec3(30.0);
 
 				apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
 			}
