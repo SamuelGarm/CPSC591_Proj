@@ -502,21 +502,23 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		//		apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
 		//	}
 		//}
-		float hitDist = SphereIntersect(ray, glm::vec3(0), 10.f);
+		float hitDist = SphereIntersect(ray, glm::vec3(0), 30.f);
 		if (hitDist != 0.0) {
+			return glm::vec3(1);
+			//std::cout << "HIT\n";
 			// generating random numbers for the BRDF
 			time_t seconds;
-			seconds = time(NULL);
-			float r1 = rand(seed);
-			seed.x = sin(r1 - float(seconds));
-			float r2 = rand(seed);
-			seconds = time(NULL);
-			seed.y = sin(r2 + float(seconds));
+			//seconds = time(NULL);
+			//float r1 = rand(seed);
+			//seed.x = sin(r1 - float(seconds));
+			//float r2 = rand(seed);
+			//seconds = time(NULL);
+			//seed.y = sin(r2 + float(seconds));
 
 			glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
 			glm::vec3 n = normalize(intersectPoint - glm::vec3(0));
 			glm::vec3 emission = glm::vec3(1);
-			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
+			//apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
 		}
 	}
 	return finalCol;
@@ -593,7 +595,8 @@ glm::vec3 RayTraceVoxelV2(
 
 	// gamma correction
 	const float gamma = 2.2;
-	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
+	fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
+	return fRadiance ;
 }
 
 // Assigns a pixel with a ray direction 
@@ -602,22 +605,23 @@ std::vector<RayAndPixel> getRaysForViewpoint(ImageBuffer& image, Camera& cam) {
 
 	const float FOV = M_PI / 4.0f; //45 degree FOV
 
-	float startAngle = -FOV / 2;
-	float endAngle = FOV / 2;
-	float hFOV = startAngle;
-	float vFOV = startAngle;
-
+	//x,y relate to the x,y of the image output pixels. This loop iterates through each pixel on the screen
 	for (int x = 0; x < image.Width(); x++) {
-		vFOV = startAngle;
 		for (int y = 0; y < image.Height(); y++) {
-			glm::vec3 direction = glm::normalize(glm::vec3(sin(hFOV), sin(vFOV), -1));
-			Ray r;
-			r.origin = cam.getPos();
-			r.direction = cam.getDir();
-			rays.push_back({ r,x,y });
-			vFOV += FOV / image.Height();
+			//cy = up  cx = right
+			glm::vec3 cy = glm::vec3(0.0, 1.0, 0.0);
+			glm::vec3 cx = glm::normalize(glm::cross(cam.getDir(), cy));
+			cy = glm::normalize(glm::cross(cx, cam.getDir()));
+			cx *= image.Width() / image.Height();
+			cx *= 0.8;
+			cy *= 0.8;
+
+			glm::vec3 direction = cx * ((float)x / image.Width() - .5f) + cy * ((float)y / image.Height() - .5f) + cam.getDir();
+			direction = glm::normalize(direction);
+
+			Ray r = Ray(cam.getPos(), direction);
+			rays.push_back({ r, x, y });
 		}
-		hFOV += FOV / image.Width();
 	}
 	return rays;
 }
