@@ -467,6 +467,63 @@ glm::vec3 Intersect(
 	return marchPoint = glm::vec3(-1000);
 }
 
+// Iterates through every single object in the scene and finds the closest hit distance
+// assumes every object is a sphere
+bool wholeSceneIntersect(
+	Ray& ray, 
+	VoxelGrid<clusterData>& vGrid,
+	glm::vec3 objPos,
+	float& d,
+	glm::vec3& emission,
+	glm::vec3& fAcc,
+	glm::vec3& k) 
+{
+	// Variable to hold closest distance
+	d = 0;
+
+	// Infinite value for the intersection distance.
+	float inf = std::numeric_limits<float>::max();;
+
+	// t to the inital 'ifinite' value
+	float t = inf; // TO BE RETURNED 
+
+	// Checking light intersect distance
+	d = SphereIntersect(ray, panel::lightPos, 1.f);
+	if (d < t) {
+		t = d;
+		objPos = panel::lightPos;
+		emission = glm::vec3(1.0); // emissive
+		fAcc *= glm::vec3(1.0);    // white
+		k = glm::vec3(1.0, 0.0, 0.0); // diffuse
+	}
+
+	for (int x = 0; x < vGrid.getDimensions().x; x++) {
+		for (int y = 0; y < vGrid.getDimensions().y; y++) {
+			for (int z = 0; z < vGrid.getDimensions().z; z++) {
+				d = 0;
+
+				if (vGrid.at(x, y, z).material == Cluster) {
+					d = SphereIntersect(ray, glm::vec3(x, y, z), 0.5f);
+				}
+				
+				if (d != 0 && d < t) {
+					t = d;
+					objPos = glm::vec3(x, y, z);
+					emission = glm::vec3(0); // not emissive
+					k = glm::vec3(0.0, 0.0, 1.0); // transparent
+					// only grabs first colour
+					// TODO: need to grab all colours ?
+					fAcc *= vGrid.at(x, y, z).incLightWavelength.at(0);
+				}
+			}
+		}
+	}
+
+	bool isValid = t < inf;
+
+	return isValid;
+}
+
 float SphereIntersect(Ray ray, glm::vec3 pos, float radius)
 // ----------------------------------------------------------------------
 // This function, SphereIntersect, calculates the intersection points between
@@ -528,6 +585,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	glm::vec3 k = glm::vec3(0);			// vector of kd, ks, kt
 
 	for (int i = 0; i != max_path_length; i++) {
+		/////////////// OLD DOUBLE MARCH INTERSECT //////////////////////
 		//// Checks intersection with opal voxel grid
 		//glm::vec3 intersectPoint = IntersectGrid(ray, vGrid);
 		//// if an intersection was found with the opal voxel grid
@@ -601,33 +659,37 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		//		apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
 		//	}
 		//}
+		/////////////// OLD DOUBLE MARCH INTERSECT END //////////////////////
 		
+		//////////// SPHERE TEST /////////////////////////////
+		//float hitDist = SphereIntersect(ray, glm::vec3(0), 30.f);
+		//if (hitDist != 0.0) {
+		//	//return glm::vec3(1);
+		//	//std::cout << "HIT\n";
+		//	// generating random numbers for the BRDF
+		//	time_t seconds;
+		//	seconds = time(NULL);
+		//	float r1 = rand(seed);
+		//	seed.x = sin(r1 - float(seconds));
+		//	float r2 = rand(seed);
+		//	seconds = time(NULL);
+		//	seed.y = sin(r2 + float(seconds));
+
+		//	fAcc *= glm::vec3(0, 1, 0);
+
+		//	k.x = 0.0;
+		//	k.y = 0.0;
+		//	k.z = 1.0;
+
+		//	glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
+		//	glm::vec3 n = normalize(intersectPoint - glm::vec3(0));
+		//	glm::vec3 emission = glm::vec3(1);
+		//	apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
+		//}
+		//////////////////// SPHERE TEST END ///////////////////
 		
-		float hitDist = SphereIntersect(ray, glm::vec3(0), 30.f);
-		if (hitDist != 0.0) {
-			//return glm::vec3(1);
-			//std::cout << "HIT\n";
-			// generating random numbers for the BRDF
-			time_t seconds;
-			seconds = time(NULL);
-			float r1 = rand(seed);
-			seed.x = sin(r1 - float(seconds));
-			float r2 = rand(seed);
-			seconds = time(NULL);
-			seed.y = sin(r2 + float(seconds));
 
-			fAcc *= glm::vec3(0, 1, 0);
-
-			k.x = 0.0;
-			k.y = 0.0;
-			k.z = 1.0;
-
-			glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
-			glm::vec3 n = normalize(intersectPoint - glm::vec3(0));
-			glm::vec3 emission = glm::vec3(1);
-			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
-		}
-
+		/////////////// VOXEL & LIGHT INTERSECT ////////////////
 		//glm::vec3 intersectPoint = Intersect(ray, vGrid, fAcc, emission, n);
 		//if (intersectPoint != glm::vec3(-1000)) {
 		//	// generating random numbers for the BRDF
@@ -641,6 +703,25 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 
 		//	apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
 		//}
+		/////////////// VOXEL & LIGHT INTERSECT END ////////////////
+
+		float hitDist = 0;
+		glm::vec3 objPos = glm::vec3(0);
+		if (wholeSceneIntersect(ray, vGrid, objPos, hitDist,emission,fAcc,k)) {
+			// generating random numbers for the BRDF
+			time_t seconds;
+			seconds = time(NULL);
+			float r1 = rand(seed);
+			seed.x = sin(r1 - float(seconds));
+			float r2 = rand(seed);
+			seconds = time(NULL);
+			seed.y = sin(r2 + float(seconds));
+
+			glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
+			glm::vec3 n = normalize(intersectPoint - objPos);
+
+			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
+		}
 
 	}
 	return finalCol;

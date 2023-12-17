@@ -86,6 +86,15 @@ glm::vec3 Intersect(
 	glm::vec3& emission,
 	glm::vec3& n);
 
+bool wholeSceneIntersect(
+	Ray& ray,
+	VoxelGrid<clusterData>& vGrid,
+	glm::vec3 objPos,
+	float& d,
+	glm::vec3& emission,
+	glm::vec3& fAcc,
+	glm::vec3& k);
+
 float SphereIntersect(Ray ray, glm::vec3 pos, float radius);
 
 
