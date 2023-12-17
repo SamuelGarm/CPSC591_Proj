@@ -58,6 +58,8 @@ extern float meanRadius = 3.f;
 extern bool sampleNeighbours = true;
 extern bool fixedRadius = false;
 
+bool retraceImage = false;
+
 // Variables to index inspections
 int inspectX = 0;
 int inspectY = 0;
@@ -140,10 +142,13 @@ void updateMenu() {
 
     Spacing();
     const char* items[] = { "Orientation", "Grating", "Ray Trace"};
+
     //Combo("RenderingPipeline", &renderPipeline, items, 2);
     RadioButton(items[0], &renderPipeline, 0); ImGui::SameLine();
     RadioButton(items[1], &renderPipeline, 1); ImGui::SameLine();
     RadioButton(items[2], &renderPipeline, 2);
+
+    //Button("Re-trace image" &retraceImage);
 
     Spacing();
     const char* clustGenNames[] = {"Linear Random","Exp Dist Sphere"};

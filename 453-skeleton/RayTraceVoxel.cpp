@@ -502,10 +502,11 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		//		apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
 		//	}
 		//}
-		float hitDist = SphereIntersect(ray, glm::vec3(0), 30.f);
+		float hitDist = SphereIntersect(ray, glm::vec3(100, 75, 25) / 2.f, 30.f);
 		if (hitDist != 0.0) {
+
 			return glm::vec3(1);
-			//std::cout << "HIT\n";
+			
 			// generating random numbers for the BRDF
 			time_t seconds;
 			//seconds = time(NULL);
@@ -602,24 +603,26 @@ glm::vec3 RayTraceVoxelV2(
 // Assigns a pixel with a ray direction 
 std::vector<RayAndPixel> getRaysForViewpoint(ImageBuffer& image, Camera& cam) {
 	std::vector<RayAndPixel> rays;
+	float aspectRatio = (float)image.Width() / image.Height();
 
-	const float FOV = M_PI / 4.0f; //45 degree FOV
+	float planeHeight = 0.1 * tan(glm::radians(45.f) * 0.5) * 2;
+	float planeWidth = planeHeight * aspectRatio;
+	glm::vec3 bottomLeftLocal = glm::vec3(-planeWidth / 2, -planeHeight / 2, 0.1);
+
+	glm::vec3 camRight = glm::normalize(glm::cross(cam.getDir(), cam.getUp()));
 
 	//x,y relate to the x,y of the image output pixels. This loop iterates through each pixel on the screen
 	for (int x = 0; x < image.Width(); x++) {
 		for (int y = 0; y < image.Height(); y++) {
-			//cy = up  cx = right
-			glm::vec3 cy = glm::vec3(0.0, 1.0, 0.0);
-			glm::vec3 cx = glm::normalize(glm::cross(cam.getDir(), cy));
-			cy = glm::normalize(glm::cross(cx, cam.getDir()));
-			cx *= image.Width() / image.Height();
-			cx *= 0.8;
-			cy *= 0.8;
+			float tx = x / ((float)image.Width() - 1);
+			float ty = y / ((float)image.Height() - 1);
 
-			glm::vec3 direction = cx * ((float)x / image.Width() - .5f) + cy * ((float)y / image.Height() - .5f) + cam.getDir();
-			direction = glm::normalize(direction);
 
-			Ray r = Ray(cam.getPos(), direction);
+			glm::vec3 pointLocal = bottomLeftLocal + glm::vec3(planeWidth * tx, planeHeight * ty, 0);
+			glm::vec3 point = cam.getPos() + camRight * pointLocal.x + cam.getUp() * pointLocal.y + cam.getDir() * pointLocal.z;
+			glm::vec3 rayDirection = glm::normalize(point - cam.getPos());
+
+			Ray r = Ray(cam.getPos(), rayDirection);
 			rays.push_back({ r, x, y });
 		}
 	}
@@ -640,6 +643,7 @@ void rayTraceImage(
 
 	for (auto const& r : rays) {
 		glm::vec3 color = RayTraceVoxelV2(r.ray, sample_count, max_path_length, vGrid);
+		//std::cout << "X: " << r.x << "  Y: " << r.y << '\n';
 		image.SetPixel(r.x, r.y, color);
 		//std::cout << "colour: " << color.x << "," << color.y << "," << color.z << std::endl;
 	}
