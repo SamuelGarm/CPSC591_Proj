@@ -32,7 +32,7 @@ struct RayAndPixel {
 // redefinition issues - if you know how to fix, be my guest
 //glm::vec3 fRadiance;
 
-glm::vec2 seedGen();
+glm::vec2 seedGen(glm::vec2 fragCoord);
 float rand(glm::vec2 st);
 
 std::vector<glm::vec3> createLocalFrame(glm::vec3 &n, glm::vec3 &T, glm::vec3 &B);
@@ -72,12 +72,20 @@ void apply_BRDF(
 	float r1,
 	float r2,
 	glm::vec2 &seed,
+	glm::vec3& k,
 	glm::vec3 &fAcc,
 	glm::vec3 &emission,
 	glm::vec3 &finalCol);
 
 glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid);
 glm::vec3 IntersectLight(Ray &ray);
+glm::vec3 Intersect(
+	Ray& ray,
+	VoxelGrid<clusterData>& vGrid, 
+	glm::vec3& fAcc, 
+	glm::vec3& emission,
+	glm::vec3& n);
+
 float SphereIntersect(Ray ray, glm::vec3 pos, float radius);
 
 
@@ -94,7 +102,7 @@ glm::vec3 RayTraceVoxel(
 	VoxelGrid<clusterData>& vGrid);
 
 glm::vec3 RayTraceVoxelV2(
-	Ray ray,
+	RayAndPixel r,
 	int sample_count,
 	int max_path_length,
 	VoxelGrid<clusterData>& vGrid);
