@@ -46,15 +46,17 @@ public:
 	}
 
 	virtual void mouseButtonCallback(int button, int action, int mods) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-			if (action == GLFW_PRESS) {
-				clickX = mouseX;
-				clickY = mouseY;
-				leftMouseButtonPressed = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				leftMouseButtonPressed = false;
-				firstMouse = true;
+		if (true) { //panel::renderPipeline != 2) {
+			if (button == GLFW_MOUSE_BUTTON_LEFT) {
+				if (action == GLFW_PRESS) {
+					clickX = mouseX;
+					clickY = mouseY;
+					leftMouseButtonPressed = true;
+				}
+				else if (action == GLFW_RELEASE) {
+					leftMouseButtonPressed = false;
+					firstMouse = true;
+				}
 			}
 		}
 	}
@@ -65,63 +67,58 @@ public:
 		}
 
 		if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-			//scene = initScene1();
-			//std::cout << "Rendering scene 1\n";
-			//raytraceImage(scene, outputImage, viewPoint);
-			//std::cout << "Finished\n";
+			panel::renderPipeline = 1;
+			panel::pipelineChanged = true;
 		}
 
-		if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
-			//scene = initScene2();
-			//std::cout << "Rendering scene 2\n";
-			//raytraceImage(scene, outputImage, viewPoint);
-			//std::cout << "Finished\n";
-		}
-
-		if (action == GLFW_PRESS) {
-			if (key == GLFW_KEY_P)
-				panel::showPanel = !panel::showPanel;
-			if (key == GLFW_KEY_W)
-				camera.fspeed += 1.0f;
-			if (key == GLFW_KEY_S)
-				camera.fspeed += -1.0f;
-			if (key == GLFW_KEY_A)
-				camera.hspeed += -1.0f;
-			if (key == GLFW_KEY_D)
-				camera.hspeed += 1.0f;
-		}
-		else if (action == GLFW_RELEASE)
-		{
-			if (key == GLFW_KEY_W)
-				camera.fspeed -= 1.0f;
-			if (key == GLFW_KEY_S)
-				camera.fspeed -= -1.0f;
-			if (key == GLFW_KEY_A)
-				camera.hspeed -= -1.0f;
-			if (key == GLFW_KEY_D)
-				camera.hspeed -= 1.0f;
+		if (true) {//panel::renderPipeline != 2) {
+			if (action == GLFW_PRESS) {
+				if (key == GLFW_KEY_P)
+					panel::showPanel = !panel::showPanel;
+				if (key == GLFW_KEY_W)
+					camera.fspeed += 1.0f;
+				if (key == GLFW_KEY_S)
+					camera.fspeed += -1.0f;
+				if (key == GLFW_KEY_A)
+					camera.hspeed += -1.0f;
+				if (key == GLFW_KEY_D)
+					camera.hspeed += 1.0f;
+			}
+			else if (action == GLFW_RELEASE)
+			{
+				if (key == GLFW_KEY_W)
+					camera.fspeed -= 1.0f;
+				if (key == GLFW_KEY_S)
+					camera.fspeed -= -1.0f;
+				if (key == GLFW_KEY_A)
+					camera.hspeed -= -1.0f;
+				if (key == GLFW_KEY_D)
+					camera.hspeed -= 1.0f;
+			}
 		}
 
 	}
 
 	virtual void cursorPosCallback(double xpos, double ypos) {
-		mouseX = xpos;
-		mouseY = ypos;
-		if (leftMouseButtonPressed) {
-			if (firstMouse)
-			{
-				lastX = clickX;
-				lastY = clickY;
-				firstMouse = false;
+		if (true) {//panel::renderPipeline != 2) 
+			mouseX = xpos;
+			mouseY = ypos;
+			if (leftMouseButtonPressed) {
+				if (firstMouse)
+				{
+					lastX = clickX;
+					lastY = clickY;
+					firstMouse = false;
+				}
+				float dx = (xpos - lastX) * 0.1;
+				float dy = (lastY - ypos) * 0.1;
+
+				lastX = xpos;
+				lastY = ypos;
+
+				camera.panHorizontal(dx);
+				camera.panVertical(dy);
 			}
-			float dx = (xpos - lastX) * 0.1;
-			float dy = (lastY - ypos) * 0.1;
-
-			lastX = xpos;
-			lastY = ypos;
-
-			camera.panHorizontal(dx);
-			camera.panVertical(dy);
 		}
 	}
 
@@ -144,10 +141,6 @@ public:
 
 	bool shouldQuit = false;
 
-	//ImageBuffer outputImage;
-	//Scene scene;
-	//glm::vec3 viewPoint;
-
 };
 
 
@@ -164,7 +157,6 @@ int main() {
 	Window window(width, height, "CPSC 591 - Opal");
 
 	//set up the image buffer for output
-	//outpuImage.Initialize();
 
 	GLDebug::enable();
 	
@@ -230,16 +222,26 @@ int main() {
 
 		glm::mat4 V = a5->camera.getView();
 
-		glEnable(GL_DEPTH_TEST);
+		
 
 		if (panel::bgColourChanged) {
 			bgColour = panel::clear_color;
 			panel::bgColourChanged = false;
 		}
-		glClearColor(bgColour.x,bgColour.y,bgColour.z,1);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		if (panel::renderPipeline != 2) {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			glDisable(GL_FRAMEBUFFER_SRGB);
+			glEnable(GL_DEPTH_TEST);
+			glClearColor(bgColour.x, bgColour.y, bgColour.z, 1);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+		else if (panel::renderPipeline == 2) {
+			glEnable(GL_FRAMEBUFFER_SRGB);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
 
 		using namespace Graphics;
 
@@ -299,39 +301,10 @@ int main() {
 		}
 		// Ray Trace Display
 		else if (panel::renderPipeline == 2) {
-			//if (frag_x > windowSize.x) {
-			//	frag_x = 0; 
-			//	frag_y++;
-			//}
-			//if (frag_y > windowSize.y) frag_y = 0;
-			//glm::vec2 fragCoord;
-			//fragCoord.x = frag_x;
-			//fragCoord.y = frag_y;
 
-			//std::cout << "fragCoord" << fragCoord.x << "," << fragCoord.y << std::endl;
-
-			//(*voxelRayTraceShader).use();
-			//GLuint cameraUniform = glGetUniformLocation(GLuint(*gratingMaximaShader), "cameraMat");
-			//glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, glm::value_ptr(glm::perspective(45.f, 1.f, 0.1f, 500.f) * V));
-
-			//// Pushes the radiance calculation to the shader
-			//GLuint radianceUniform = glGetUniformLocation(GLuint(*voxelRayTraceShader), "radiance");
-			//glm::vec3 radiance = RayTraceVoxel(a5->camera,
-			//	windowSize,
-			//	fragCoord,
-			//	panel::sample_count,
-			//	panel::max_path_length,
-			//	vGrid);
-
-			////std::cout << "Radiance: " << radiance.x << "," << radiance.y << "," << radiance.z << std::endl;
-
-			//glUniform3fv(radianceUniform, 1, glm::value_ptr(radiance));
-
-			//frag_x++;
-			glEnable(GL_FRAMEBUFFER_SRGB);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			std::cout << "Raytracing\n";
 			rayTraceImage(outputImage, a5->camera, panel::sample_count, panel::max_path_length, vGrid);
+			
 			outputImage.Render();
 			std::cout << "Raytracing finished\n";
 		}

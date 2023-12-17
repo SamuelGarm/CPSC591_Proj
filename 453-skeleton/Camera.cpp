@@ -39,6 +39,10 @@ glm::vec3 Camera::getDir() {
 	return cameraDirection;
 }
 
+glm::vec3 Camera::getUp() {
+	return cameraUp;
+}
+
 void Camera::setPos(glm::vec3 _position) {
 	cameraPos = _position;
 }
