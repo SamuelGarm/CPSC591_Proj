@@ -2,6 +2,8 @@ Rendering simulation of 'Diffraction Grating' / 'Play of Colour' in opals
 The program aims to simulate the play of colour in opals, by simulating an opal macroscopic structure through a voxel grid with various parameters that control the silica structure of opals.
 These silica structures cause a diffraction grating effect creating various colours on the surface of opals.
 
+Derived from ['Rendering 'Play of Colour' using Stratified based on Amorphous structure of Opal'](https://books.google.ca/books?hl=en&lr=&id=oz-Sinxlj08C&oi=fnd&pg=PT427&dq=light+diffraction,+opal,+rendering&ots=y_AzHGmWo-&sig=N4BT5j7o0m7SvHPR6No4Gx1BusM#v=onepage&q=light%20diffraction%2C%20opal%2C%20rendering&f=false)
+
 ### Technology
 C++,
 OpenGL,
