@@ -75,7 +75,7 @@ glm::vec3 Intersect(
 	glm::vec3& emission,
 	glm::vec3& n);
 
-bool wholeSceneIntersect(
+Intersection wholeSceneIntersect(
 	Ray& ray,
 	VoxelGrid<clusterData>& vGrid,
 	glm::vec3 objPos,

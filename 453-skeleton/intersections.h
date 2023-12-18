@@ -60,7 +60,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 				if (d < result.distance) {
 					result.distance = d;
 					result.isValid = true;
-					result.normal = glm::vec3(1, 0, 0);
+					result.normal = glm::vec3(-1, 0, 0);
 					result.position = ray.origin + ray.direction * d;
 				}
 			}
@@ -86,7 +86,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 				if (d < result.distance) {
 					result.distance = d;
 					result.isValid = true;
-					result.normal = glm::vec3(-1, 0, 0);
+					result.normal = glm::vec3(1, 0, 0);
 					result.position = ray.origin + ray.direction * d;
 				}
 			}
@@ -117,7 +117,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 				if (d < result.distance) {
 					result.distance = d;
 					result.isValid = true;
-					result.normal = glm::vec3(0, 1, 0);
+					result.normal = glm::vec3(0, -1, 0);
 					result.position = ray.origin + ray.direction * d;
 				}
 			}
@@ -143,7 +143,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 				if (d < result.distance) {
 					result.distance = d;
 					result.isValid = true;
-					result.normal = glm::vec3(0, -1, 0);
+					result.normal = glm::vec3(0, 1, 0);
 					result.position = ray.origin + ray.direction * d;
 				}
 			}
@@ -174,7 +174,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 				if (d < result.distance) {
 					result.distance = d;
 					result.isValid = true;
-					result.normal = glm::vec3(0, 0, 1);
+					result.normal = glm::vec3(0, 0, -1);
 					result.position = ray.origin + ray.direction * d;
 				}
 			}
@@ -200,7 +200,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 				if (d < result.distance) {
 					result.distance = d;
 					result.isValid = true;
-					result.normal = glm::vec3(0, 0, -1);
+					result.normal = glm::vec3(0, 0, 1);
 					result.position = ray.origin + ray.direction * d;
 				}
 			}

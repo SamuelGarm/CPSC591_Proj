@@ -469,7 +469,7 @@ glm::vec3 Intersect(
 
 // Iterates through every single object in the scene and finds the closest hit distance
 // assumes every object is a sphere
-bool wholeSceneIntersect(
+Intersection wholeSceneIntersect(
 	Ray& ray, 
 	VoxelGrid<clusterData>& vGrid,
 	glm::vec3 objPos,
@@ -499,7 +499,7 @@ bool wholeSceneIntersect(
 		k = glm::vec3(1.0, 0.0, 0.0); // diffuse
 	}
 
-	return intersection.isValid;
+	return intersection;
 }
 
 
@@ -518,8 +518,9 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	for (int i = 0; i < max_path_length; i++) {
 		float hitDist = 0;
 		glm::vec3 objPos = glm::vec3(0);
-		if (wholeSceneIntersect(ray, vGrid, objPos, hitDist,emission,fAcc,k)) {
-			return glm::vec3(1, 0, 0);
+		Intersection closestIntersection = wholeSceneIntersect(ray, vGrid, objPos, hitDist, emission, fAcc, k);
+		if (closestIntersection.isValid) {
+			return closestIntersection.normal;
 			// generating random numbers for the BRDF
 			time_t seconds;
 			seconds = time(NULL);
@@ -529,8 +530,8 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 			seconds = time(NULL);
 			seed.y = sin(r2 + float(seconds));
 
-			glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
-			glm::vec3 n = normalize(intersectPoint - objPos);
+			glm::vec3 intersectPoint = closestIntersection.position;
+			glm::vec3 n = closestIntersection.normal;
 
 			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
 		}
