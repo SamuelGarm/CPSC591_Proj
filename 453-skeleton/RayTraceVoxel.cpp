@@ -335,7 +335,14 @@ Intersection wholeSceneIntersect(
 
 	while(true) {
 		intersection = voxelGridIntersect(ray, vGrid);
+		//if the intersection is invalid just break the loop
+		if (!intersection.isValid)
+			break;
+
+		ray.origin = intersection.position;
+
 		//we know the intersection will be on a plane between 2 voxels
+		//calculate the voxel index of the voxel the ray is leaving and the one it is entering over the plane
 		glm::vec3 norm = intersection.normal;
 		glm::vec3 fromVox = floor(intersection.position);
 		glm::vec3 toVox = floor(intersection.position);
@@ -346,21 +353,19 @@ Intersection wholeSceneIntersect(
 			fromVox += norm;
 		}
 
+		//if the voxel we are entering is outside the boundaries it is not a valid intersection
 		if (toVox.x >= vGridSize.x || toVox.x < 0 ||
 			toVox.y >= vGridSize.y || toVox.y < 0 ||
 			toVox.z >= vGridSize.z || toVox.z < 0) {
 			intersection.isValid = false;
 			break;
 		}
-		if (!intersection.isValid)
-			break;
+
 
 		//loop until we aren't hitting empty space in the voxel grid
-		if (vGrid.at(toVox.x, toVox.y, toVox.z).material != Empty) {
+		if (vGrid.at(toVox.x, toVox.y, toVox.z).material == Cluster) {
 			break;
-			intersection.isValid = false;
 		}
-		ray.origin = intersection.position + ray.direction * 0.0001f;
 	}
 
 	if (intersection.isValid) {
@@ -392,6 +397,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		glm::vec3 objPos = glm::vec3(0);
 		Intersection closestIntersection = wholeSceneIntersect(ray, vGrid, objPos, hitDist, emission, fAcc, k);
 		if (closestIntersection.isValid) {
+			return closestIntersection.normal;
 			// generating random numbers for the BRDF
 			time_t seconds;
 			seconds = time(NULL);

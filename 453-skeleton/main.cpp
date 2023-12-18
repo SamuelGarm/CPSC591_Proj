@@ -305,7 +305,7 @@ int main() {
 
 			std::cout << "Raytracing\n";
 			rayTraceImage(outputImage, a5->camera, panel::sample_count, panel::max_path_length, vGrid);
-			
+			outputImage.SaveToFile("Output.png");
 			outputImage.Render();
 			std::cout << "Raytracing finished\n";
 		}
