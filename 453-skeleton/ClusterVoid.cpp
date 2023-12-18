@@ -600,3 +600,22 @@ void trimVGrid(VoxelGrid<clusterData>& vGrid) {
 
 	}
 }
+
+// Fills the vGrid with random colours
+void fillGridRandColours(VoxelGrid<clusterData>& vGrid) {
+	srand(time(0));
+
+	int vGridSize = vGrid.getDimensions().x * vGrid.getDimensions().y * vGrid.getDimensions().z;
+	for (int x = 0; x < vGrid.getDimensions().x; x++) {
+		for (int y = 0; y < vGrid.getDimensions().y; y++) {
+			for (int z = 0; z < vGrid.getDimensions().z; z++) {
+				if (vGrid.at(x, y, z).material == Cluster) {
+					float r = glm::linearRand<float>(0, 1);
+					float g = glm::linearRand<float>(0, 1);
+					float b = glm::linearRand<float>(0, 1);
+					vGrid.at(x, y, z).incLightWavelength.push_back(glm::vec3(r,g,b));
+				}
+			}
+		}		
+	}
+}

@@ -3,17 +3,17 @@
 glm::vec3 fRadiance;
 
 // Random seed generation for random functions
-glm::vec2 seedGen() {
+glm::vec2 seedGen(glm::vec2 fragCoord) {
 	time_t seconds;
 	seconds = time(NULL);
-	float r1 = seconds;					// TODO: add gl_fragCoord.x + seconds
-	float r2 = sin(float(seconds));     // TODO: add gl_fragCoord.y + sin...
+	float r1 = fragCoord.x + seconds;					// TODO: add gl_fragCoord.x + seconds
+	float r2 = fragCoord.y + sin(float(seconds));     // TODO: add gl_fragCoord.y + sin( float(iFrame) );
 
 	return glm::vec2(r1, r2);
 }
 
 // Imported from CPSC 591 A2
-float rand(glm::vec2& st)
+float rand(glm::vec2 st)
 // ----------------------------------------------------------------------
 // Generates pseudo-random numbers using Perlin noise.
 //
@@ -234,7 +234,6 @@ void Material_Specular_Glossy_Transparent(
 			ray.direction = reflect(ray.direction, n);
 			ray.direction = normalize(ray.direction);
 			ray.origin = intersectPoint;
-			//fAcc *= RP;     //  multiply with corresponding factors
 			//finalCol += fAcc * obj.emission * RP;
 			finalCol += fAcc * emission * RP;
 
@@ -246,8 +245,7 @@ void Material_Specular_Glossy_Transparent(
 
 			ray.direction = tdir;      // refraction direction b?
 			ray.direction = normalize(ray.direction);
-			ray.origin = intersectPoint;
-			//fAcc *= TP;                 
+			ray.origin = intersectPoint;           
 			//finalCol += fAcc * obj.emission * TP;
 			finalCol += fAcc * emission * TP;
 
@@ -263,6 +261,7 @@ void apply_BRDF(
 	float r1,					// Corrected normal direction.
 	float r2,					// Random value for BRDF.
 	glm::vec2 &seed,				// Random seed for BRDF.
+	glm::vec3 &k,				// Vector of kd, ks, kt
 	glm::vec3 &fAcc,				// Accumulated reflectance factor.
 	glm::vec3 &emission,		    // The emissiveness of the object at the point
 	glm::vec3 &finalCol)			// Final radiance color.
@@ -276,102 +275,111 @@ void apply_BRDF(
 	// ks = Specular Reflectance Coefficient
 	// kt = Transmittance Coefficient
 	// TODO: sample kd,ks,kt from object - currently sampling from panel to test;
-	float kd = panel::kd;
-	float ks = panel::ks;
-	float kt = panel::ka;
+	//float kd = panel::kd;
+	//float ks = panel::ks;
+	//float kt = panel::ka;
 
-	// TODO: will need to remove this hardcode if sampling from each object
-	// Hardcode that if the emission of the object is greater than 0 - meaning it's a light
-	// set the kd,ks,and kt to appropriate light values found in CPSC 591 - A2
-	if (emission.x > 0.f || emission.y > 0.f || emission.z > 0.f) {
-		kd = 1.0;
-		ks = 0.0;
-		kt = 0.0;
-	}
+	//float kd = 0.0;
+	//float ks = 0.0;
+	//float kt = 1.0;
 
-	float ktot = kd + ks + kt; // Calculating the total reflectance factor
+	//// TODO: will need to remove this hardcode if sampling from each object
+	//// Hardcode that if the emission of the object is greater than 0 - meaning it's a light
+	//// set the kd,ks,and kt to appropriate light values found in CPSC 591 - A2
+	//if (emission.x > 0.f || emission.y > 0.f || emission.z > 0.f) {
+	//	kd = 1.0;
+	//	ks = 0.0;
+	//	kt = 0.0;
+	//}
+
+	//float ktot = kd + ks + kt; // Calculating the total reflectance factor
+	float ktot = k.x + k.s + k.z;
 	float R = r1 * ktot;       // Scaling a random number in the range (0.0, ktot)
-	if (R < kd) {
+	if (R < k.x) {
+		//std::cout << "Diffuse" << std::endl;
 		Material_Diffuse(ray, intersectPoint, n, r1, r2, fAcc, emission, finalCol);
 	}
 	else {
-		if (R < kd + ks) {
+		if (R < k.x + k.y) {
+			//std::cout << "Specular Glossy" << std::endl;
 			Material_Specular_Glossy(ray, intersectPoint, n, fAcc, emission, finalCol);
 		}
 		else {
+			//std::cout << "Transparent" << std::endl;
 			Material_Specular_Glossy_Transparent(ray, intersectPoint, n, seed, 
 				fAcc, emission, finalCol);
 		}
 	}
 }
 
-// Function to check if there's an interesction with the opal voxel grid
-glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
-	// Initialize a variable to hold the closest itersection distance
-	//float d;
+// Iterates through every single object in the scene and finds the closest hit distance
+// assumes every object is a sphere
+Intersection wholeSceneIntersect(
+	Ray& ray, 
+	VoxelGrid<clusterData>& vGrid,
+	glm::vec3 objPos,
+	float& d,
+	glm::vec3& emission,
+	glm::vec3& fAcc,
+	glm::vec3& k) 
+{
+	// Variable to hold closest distance
+	d = 0;
 
-	// Set an initial "infinite" value for the intersection distance
-	//float inf = std::numeric_limits<float>::max();
+	// Checking light intersect distance
+	//d = SphereIntersect(ray, panel::lightPos, 1.f);
 
-	// Finds the largets dimension of the vGrid to set as the ray march limit
-	int maxVGridDimension = vGrid.getDimensions().x;
-	if (maxVGridDimension < vGrid.getDimensions().y) maxVGridDimension = vGrid.getDimensions().y;
-	if (maxVGridDimension < vGrid.getDimensions().z) maxVGridDimension = vGrid.getDimensions().z;
-	maxVGridDimension += 10; // Increases the limit by a little bit over the size of the grid as a buffer
+	glm::vec3 vGridSize = vGrid.getDimensions();
 
+	Intersection intersection;
 
-	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = ray.direction * 0.5f;
-	// Marches along the ray in quarter increments to find a voxel intersection
-	// (voxels are unit size)
-	for (float i = 0.f; i < maxVGridDimension; i += 0.25f) {
-		// If the ray march position is in the positives (the voxel grid is all positive)
-		// and is within the voxel grid dimensions
-		if (marchPoint.x >= 0.f && marchPoint.x < vGrid.getDimensions().x
-			&& marchPoint.y >= 0.f && marchPoint.y < vGrid.getDimensions().y
-			&& marchPoint.z >= 0.f && marchPoint.z < vGrid.getDimensions().z) {
+	while(true) {
+		intersection = voxelGridIntersect(ray, vGrid);
+		//if the intersection is invalid just break the loop
+		if (!intersection.isValid)
+			break;
 
-			//std::cout << "March point: " << marchPoint.x << "," << marchPoint.y << ","
-			//	<< marchPoint.z << std::endl;
+		ray.origin = intersection.position;
 
-			// check what material of the voxel the ray has intersected with
-			// if it's a cluster
-			if (vGrid.at((int)marchPoint.x, (int)marchPoint.y, (int)marchPoint.z).material == Cluster) {
-				//std::cout << "March point hit cluster: " << 
-				//	(int)marchPoint.x << "," << (int)marchPoint.y << ","
-				//	<< (int)marchPoint.z  << std::endl;
-				
-				// if the ray has intersected with a cluster, return the ray march point
-				return marchPoint;
-			}
+		//we know the intersection will be on a plane between 2 voxels
+		//calculate the voxel index of the voxel the ray is leaving and the one it is entering over the plane
+		glm::vec3 norm = intersection.normal;
+		glm::vec3 fromVox = floor(intersection.position);
+		glm::vec3 toVox = floor(intersection.position);
+		if (norm.x == 1 || norm.y == 1 || norm.z == 1) {
+			toVox -= norm;
 		}
-		marchPoint += marchAmount; // Increment the current march point
+		else {
+			fromVox += norm;
+		}
+
+		//if the voxel we are entering is outside the boundaries it is not a valid intersection
+		if (toVox.x >= vGridSize.x || toVox.x < 0 ||
+			toVox.y >= vGridSize.y || toVox.y < 0 ||
+			toVox.z >= vGridSize.z || toVox.z < 0) {
+			intersection.isValid = false;
+			break;
+		}
+
+
+		//loop until we aren't hitting empty space in the voxel grid
+		if (vGrid.at(toVox.x, toVox.y, toVox.z).material == Cluster) {
+			break;
+		}
 	}
-	// if no intersection was found, return a glm::vec3 of -1 
-	return marchPoint = glm::vec3(-1);
+
+	if (intersection.isValid) {
+		d = intersection.distance;
+		objPos = panel::lightPos;
+		emission = glm::vec3(1.0); // emissive
+		fAcc *= glm::vec3(1.0);    // white
+		k = glm::vec3(1.0, 0.0, 0.0); // diffuse
+	}
+
+	return intersection;
 }
 
-// function to check if there's an intersection with the light
-glm::vec3 IntersectLight(Ray &ray) {
-	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = ray.direction * 0.25f;
 
-	float marchLimit = 100.f; // the limit of how many times the ray should march
-	float proximityDif = 1.f; // what the diff should be between current ray point and lightPos
-
-	// march the ray
-	for (float i = 0.f; i < marchLimit; i += 0.25f) {
-		// if the ray is within the range of the light, return that point
-		if (marchPoint.x - panel::lightPos.x <= proximityDif &&
-			marchPoint.y - panel::lightPos.y <= proximityDif &&
-			marchPoint.z - panel::lightPos.z <= proximityDif) {
-			return marchPoint;
-		}
-		marchPoint += marchAmount; // Increment the current march point
-	}
-	// if no intersection is found, return glm::vec3 of -1000
-	return marchPoint = glm::vec3(-1000);
-}
 
 // Function to calculate final radiance 
 glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed, 
@@ -380,33 +388,16 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 
 	glm::vec3 finalCol = glm::vec3(0);   // Initialize final colour to black
 	glm::vec3 fAcc = glm::vec3(1.0);     // Initialize final accumulated reflectance factor to white.
+	glm::vec3 emission = glm::vec3(0);
+	glm::vec3 n = glm::vec3(0);
+	glm::vec3 k = glm::vec3(0);			// vector of kd, ks, kt
 
-	for (int i = 0; i != max_path_length; i++) {
-		// Checks intersection with opal voxel grid
-		glm::vec3 intersectPoint = IntersectGrid(ray, vGrid);
-		// if an intersection was found with the opal voxel grid
-		// (as in the function returned a vlue other than -1)
-		
-		//std::cout << "Intersect Point: " << intersectPoint.x << ","
-		//	<< intersectPoint.y << "," << intersectPoint.z << std::endl;
-
-		if (intersectPoint != glm::vec3(-1)) {
-			//std::cout << "cluster hit" << std::endl;
-			
-			// Calculating the normal at the intersection point
-			// I'm honestly not sure why this works, its what's in CPSC 591 A2 in
-			// CalculateRadiance() 
-			// vec3 n = normalize(p - obj.position);  // Normal at the intersection point.
-			float n_x = intersectPoint.x - (int)intersectPoint.x;
-			float n_y = intersectPoint.y - (int)intersectPoint.y;
-			float n_z = intersectPoint.z - (int)intersectPoint.z;
-			glm::vec3 n = normalize(glm::vec3(n_x,n_y,n_z));
-			
-			// Updates the accumulation by multiplying the objects colour
-			//fAcc *= vGrid.at((int)intersectPoint.x,
-			//	(int)intersectPoint.y,
-			//	(int)intersectPoint.z).incLightWavelength;
-
+	for (int i = 0; i < max_path_length; i++) {
+		float hitDist = 0;
+		glm::vec3 objPos = glm::vec3(0);
+		Intersection closestIntersection = wholeSceneIntersect(ray, vGrid, objPos, hitDist, emission, fAcc, k);
+		if (closestIntersection.isValid) {
+			return closestIntersection.normal;
 			// generating random numbers for the BRDF
 			time_t seconds;
 			seconds = time(NULL);
@@ -416,60 +407,27 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 			seconds = time(NULL);
 			seed.y = sin(r2 + float(seconds));
 
-			// TODO: Emission should ideally be sampled from the objects in each
-			// of the material functions
-			// The opal is not emissive 
-			glm::vec3 emission = glm::vec3(0);
+			glm::vec3 intersectPoint = closestIntersection.position;
+			glm::vec3 n = closestIntersection.normal;
 
-			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
+			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
 		}
-		else {
-			//std::cout << "Light hit" << std::endl;
-			
-			// Checks intersection with light
-			intersectPoint = IntersectLight(ray);
-			// if intersection with light was found
-			if (intersectPoint != glm::vec3(-1000)) {
-				float n_x = intersectPoint.x - (int)intersectPoint.x;
-				float n_y = intersectPoint.y - (int)intersectPoint.y;
-				float n_z = intersectPoint.z - (int)intersectPoint.z;
-				glm::vec3 n = normalize(glm::vec3(n_x, n_y, n_z));
 
-				// generating random numbers for the BRDF
-				time_t seconds;
-				seconds = time(NULL);
-				float r1 = rand(seed);
-				seed.x = sin(r1 - float(seconds));
-				float r2 = rand(seed);
-				seconds = time(NULL);
-				seed.y = sin(r2 + float(seconds));
-
-				// TODO: Emission should ideally be sampled from the objects in each
-				// of the material functions
-				// the light source is emissive (can put in a value from 0.0-30.0)
-				glm::vec3 emission = glm::vec3(30.0);
-
-				apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
-			}
-		}
 	}
 	return finalCol;
 }
 
-// Main function for ray tracing
-glm::vec3 RayTraceVoxel(Camera &cam, 
-	int sample_count, 
+// Main function for ray tracing - with a ray already passed and calculated for each pixel
+glm::vec3 RayTraceVoxelV2(
+	RayAndPixel r,
+	int sample_count,
 	int max_path_length,
-	VoxelGrid<clusterData> &vGrid) {
+	VoxelGrid<clusterData>& vGrid) {
 
 	fRadiance = glm::vec3(0); // clear the radiance vector
 
 	for (int i = 0; i != sample_count; i++) {
-		Ray ray;
-		ray.origin = cam.getPos();
-		ray.direction = normalize(cam.getDir());
-
-		fRadiance += CalculateRadiance(ray, seedGen(), max_path_length, vGrid);
+		fRadiance += CalculateRadiance(r.ray, seedGen(glm::vec2(r.x,r.y)), max_path_length, vGrid);
 	}
 
 	// Compute the average radiance over the samples
@@ -477,6 +435,76 @@ glm::vec3 RayTraceVoxel(Camera &cam,
 
 	// gamma correction
 	const float gamma = 2.2;
-	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
+	fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
+	return fRadiance ;
 }
 
+// Assigns a pixel with a ray direction 
+std::vector<RayAndPixel> getRaysForViewpoint(ImageBuffer& image, Camera& cam) {
+	std::vector<RayAndPixel> rays;
+	float aspectRatio = (float)image.Width() / image.Height();
+
+	float planeHeight = 0.1 * tan(glm::radians(45.f) * 0.5) * 2;
+	float planeWidth = planeHeight * aspectRatio;
+	glm::vec3 bottomLeftLocal = glm::vec3(-planeWidth / 2, -planeHeight / 2, 0.1);
+
+	glm::vec3 camRight = glm::normalize(glm::cross(cam.getDir(), cam.getUp()));
+
+	//x,y relate to the x,y of the image output pixels. This loop iterates through each pixel on the screen
+	for (int x = 0; x < image.Width(); x++) {
+		for (int y = 0; y < image.Height(); y++) {
+			float tx = x / ((float)image.Width() - 1);
+			float ty = y / ((float)image.Height() - 1);
+
+
+			glm::vec3 pointLocal = bottomLeftLocal + glm::vec3(planeWidth * tx, planeHeight * ty, 0);
+			glm::vec3 point = cam.getPos() + camRight * pointLocal.x + cam.getUp() * pointLocal.y + cam.getDir() * pointLocal.z;
+			glm::vec3 rayDirection = glm::normalize(point - cam.getPos());
+
+			Ray r = Ray(cam.getPos(), rayDirection);
+			rays.push_back({ r, x, y });
+		}
+	}
+	return rays;
+}
+
+// iterates through all of the rays pixel pairs and traces those paths,
+// then assigns them to an image
+void rayTraceImage(
+	ImageBuffer& image, 
+	Camera& cam,
+	int sample_count,
+	int max_path_length,
+	VoxelGrid<clusterData>& vGrid) 
+{
+	image.Initialize();
+	std::vector<RayAndPixel> rays = getRaysForViewpoint(image, cam);
+
+	int count = 0;
+	for (auto const& r : rays) {
+		count++;
+		if (count % 5000 == 0) {
+			std::cout << ((float)count * 100) / (image.Width() * image.Height()) << "%\n";
+		}
+		glm::vec3 color = RayTraceVoxelV2(r, sample_count, max_path_length, vGrid);
+		image.SetPixel(r.x, r.y, color);
+		//std::cout << "colour: " << color.x << "," << color.y << "," << color.z << std::endl;
+	}
+}
+
+// returns a random pixel in the window space
+glm::vec2 getRandPixel(glm::vec2 &windowSize) {
+	glm::vec2 pixels;
+
+	std::random_device rd; // obtain a random number from hardware
+	std::mt19937 gen(rd()); // seed the generator
+	std::uniform_int_distribution<> distrx(0, windowSize.x); // define the range
+
+	pixels.x = (distrx(gen));
+
+	std::uniform_int_distribution<> distry(0, windowSize.y); // define the range
+
+	pixels.y = (distry(gen));
+
+	return pixels;
+}

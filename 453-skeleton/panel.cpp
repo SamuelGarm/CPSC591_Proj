@@ -34,9 +34,11 @@ float particleDiameter = 1500; //measured in Å
 bool useSanders = false;
 
 // Ray Trace samples
-int sample_count = 5;
-int max_path_length = 10;
+int sample_count = 1;
+int max_path_length = 1;
+float light_emission = 10.f;
 
+// Clipping settings
 bool clippingChanged = false;
 bool bgColourChanged = false;
 bool camSpeedChanged = false;
@@ -55,6 +57,8 @@ extern int clusterMode = 0;
 extern float meanRadius = 3.f;
 extern bool sampleNeighbours = true;
 extern bool fixedRadius = false;
+
+bool retraceImage = false;
 
 // Variables to index inspections
 int inspectX = 0;
@@ -101,7 +105,7 @@ void updateMenu() {
       DragFloatRange2("Z Clipping", &zClipMin, &zClipMax, 1, minClipBounds.z, maxClipBounds.z, "%.0f");
     }
 
-    if (CollapsingHeader("Grating Rendering Settings")) {
+    if (CollapsingHeader("Rendering Settings")) {
         if (renderPipeline == 1) {
             Spacing();
             DragFloat3("Light Pos", (float*)&lightPos);
@@ -123,6 +127,7 @@ void updateMenu() {
         else if (renderPipeline == 2) {
             Spacing();
             DragFloat3("Light Pos", (float*)&lightPos);
+            SliderFloat("Light Emission Strength", &light_emission, 0.0, 30.0);
 
             Spacing();
             SliderFloat("kd", &kd, 0, 1);
@@ -137,10 +142,13 @@ void updateMenu() {
 
     Spacing();
     const char* items[] = { "Orientation", "Grating", "Ray Trace"};
+
     //Combo("RenderingPipeline", &renderPipeline, items, 2);
     RadioButton(items[0], &renderPipeline, 0); ImGui::SameLine();
     RadioButton(items[1], &renderPipeline, 1); ImGui::SameLine();
     RadioButton(items[2], &renderPipeline, 2);
+
+    //Button("Re-trace image" &retraceImage);
 
     Spacing();
     const char* clustGenNames[] = {"Linear Random","Exp Dist Sphere"};
@@ -200,6 +208,7 @@ void updateMenu() {
                 distributeVoidClusterV2(vGrid, meanRadius, sampleNeighbours);
             }
             trimVGrid(vGrid);
+            fillGridRandColours(vGrid);
             pipelineChanged = true;
         }
     }

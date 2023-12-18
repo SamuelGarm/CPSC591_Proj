@@ -39,6 +39,7 @@ extern bool useSanders;
 // Ray Trace Samples
 extern int sample_count;
 extern int max_path_length;
+extern float light_emission;
 
 //camera controls
 extern bool camSpeedChanged;
@@ -55,7 +56,7 @@ extern int clusterMode;
 extern float meanRadius;
 extern bool sampleNeighbours;
 extern bool fixedRadius;
-
+extern bool retraceImage;
 // reset
 extern bool resetView;
 
