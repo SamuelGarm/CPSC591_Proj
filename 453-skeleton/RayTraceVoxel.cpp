@@ -520,7 +520,6 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		glm::vec3 objPos = glm::vec3(0);
 		Intersection closestIntersection = wholeSceneIntersect(ray, vGrid, objPos, hitDist, emission, fAcc, k);
 		if (closestIntersection.isValid) {
-			return closestIntersection.normal;
 			// generating random numbers for the BRDF
 			time_t seconds;
 			seconds = time(NULL);
