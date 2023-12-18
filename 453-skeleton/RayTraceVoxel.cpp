@@ -312,161 +312,6 @@ void apply_BRDF(
 	}
 }
 
-// Function to check if there's an interesction with the opal voxel grid
-glm::vec3 IntersectGrid(Ray &ray, VoxelGrid<clusterData> &vGrid) {
-	// Initialize a variable to hold the closest itersection distance
-	//float d;
-
-	// Set an initial "infinite" value for the intersection distance
-	//float inf = std::numeric_limits<float>::max();
-
-	// Finds the largets dimension of the vGrid to set as the ray march limit
-	int maxVGridDimension = vGrid.getDimensions().x;
-	if (maxVGridDimension < vGrid.getDimensions().y) maxVGridDimension = vGrid.getDimensions().y;
-	if (maxVGridDimension < vGrid.getDimensions().z) maxVGridDimension = vGrid.getDimensions().z;
-	maxVGridDimension += 10; // Increases the limit by a little bit over the size of the grid as a buffer
-
-
-	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = normalize(ray.direction);
-	// Marches along the ray in quarter increments to find a voxel intersection
-	// (voxels are unit size)
-	for (int i = 0.f; i < maxVGridDimension; i ++) {
-		// If the ray march position is in the positives (the voxel grid is all positive)
-		// and is within the voxel grid dimensions
-		if (marchPoint.x >= 0.f && marchPoint.x < vGrid.getDimensions().x
-			&& marchPoint.y >= 0.f && marchPoint.y < vGrid.getDimensions().y
-			&& marchPoint.z >= 0.f && marchPoint.z < vGrid.getDimensions().z) {
-
-			//std::cout << "March point: " << marchPoint.x << "," << marchPoint.y << ","
-			//	<< marchPoint.z << std::endl;
-
-			// check what material of the voxel the ray has intersected with
-			// if it's a cluster
-			if (vGrid.at((int)marchPoint.x, (int)marchPoint.y, (int)marchPoint.z).material == Cluster) {
-				//std::cout << "March point hit cluster: " << 
-				//	(int)marchPoint.x << "," << (int)marchPoint.y << ","
-				//	<< (int)marchPoint.z  << std::endl;
-				
-				// if the ray has intersected with a cluster, return the ray march point
-				return marchPoint;
-			}
-		}
-		marchPoint += marchAmount; // Increment the current march point
-	}
-	// if no intersection was found, return a glm::vec3 of -1 
-	return marchPoint = glm::vec3(-1);
-}
-
-// function to check if there's an intersection with the light
-glm::vec3 IntersectLight(Ray &ray) {
-	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = normalize(ray.direction);
-
-	float marchLimit = 100.f; // the limit of how many times the ray should march
-	float proximityDif = 1.f; // what the diff should be between current ray point and lightPos
-
-	// march the ray
-	for (float i = 0.f; i < marchLimit; i += 0.25f) {
-		// if the ray is within the range of the light, return that point
-		if (marchPoint.x - panel::lightPos.x <= proximityDif &&
-			marchPoint.y - panel::lightPos.y <= proximityDif &&
-			marchPoint.z - panel::lightPos.z <= proximityDif) {
-			return marchPoint;
-		}
-		marchPoint += marchAmount; // Increment the current march point
-	}
-	// if no intersection is found, return glm::vec3 of -1000
-	return marchPoint = glm::vec3(-1000);
-}
-
-glm::vec3 Intersect(
-	Ray& ray, 
-	VoxelGrid<clusterData>& vGrid, 
-	glm::vec3& fAcc, 
-	glm::vec3& emission,
-	glm::vec3& n)
-{
-	// Finds the largets dimension of the vGrid to set as the ray march limit
-	int maxVGridDimension = vGrid.getDimensions().x;
-	if (maxVGridDimension < vGrid.getDimensions().y) maxVGridDimension = vGrid.getDimensions().y;
-	if (maxVGridDimension < vGrid.getDimensions().z) maxVGridDimension = vGrid.getDimensions().z;
-
-	glm::vec3 marchPoint = ray.origin;
-	glm::vec3 marchAmount = normalize(ray.direction);
-
-	int marchCountNoHit = 0;
-	int marchCountNoHitMax = 200;
-	float proximityDif = 1.f; // what the diff should be between current ray point and lightPos
-
-	while(marchCountNoHit < marchCountNoHitMax) {		
-
-		//std::cout << "March Point: " << marchPoint.x << "," << marchPoint.y << "," << marchPoint.z << std::endl;
-
-		// If the ray march position is in the positives (the voxel grid is all positive)
-		// and is within the voxel grid dimensions
-		if (marchPoint.x >= 0.f && marchPoint.x < vGrid.getDimensions().x
-			&& marchPoint.y >= 0.f && marchPoint.y < vGrid.getDimensions().y
-			&& marchPoint.z >= 0.f && marchPoint.z < vGrid.getDimensions().z) {
-			
-			if (vGrid.at((int)marchPoint.x, (int)marchPoint.y, (int)marchPoint.z).material == Cluster) {
-				//std::cout << "March point hit cluster: " << 
-				//	(int)marchPoint.x << "," << (int)marchPoint.y << ","
-				//	<< (int)marchPoint.z  << std::endl;
-
-				float n_x = marchPoint.x - (int)marchPoint.x;
-				float n_y = marchPoint.y - (int)marchPoint.y;
-				float n_z = marchPoint.z - (int)marchPoint.z;
-				n = normalize(glm::vec3(n_x,n_y,n_z));
-
-				// Updates the accumulation by multiplying the objects colour
-				fAcc *= vGrid.at((int)marchPoint.x,
-				(int)marchPoint.y,
-				(int)marchPoint.z).incLightWavelength.at(0);
-
-				// No emission for objects
-				emission = glm::vec3(0);
-
-				float kd = 0.0;
-				float ks = 0.0;
-				float kt = 1.0;
-
-				// if the ray has intersected with a cluster, return the ray march point
-				return marchPoint;
-			}
-
-		}
-		else if (marchPoint.x - panel::lightPos.x <= proximityDif &&
-			marchPoint.y - panel::lightPos.y <= proximityDif &&
-			marchPoint.z - panel::lightPos.z <= proximityDif) {
-
-			//std::cout << "March Point hit Light: " << marchPoint.x << ","
-			//	<< marchPoint.y << "," << marchPoint.z << std::endl;
-
-			float n_x = marchPoint.x - panel::lightPos.x;
-			float n_y = marchPoint.y - panel::lightPos.y;
-			float n_z = marchPoint.z - panel::lightPos.z;
-			n = normalize(glm::vec3(n_x, n_y, n_z));
-
-			// White light
-			fAcc *= glm::vec3(1);
-			emission = glm::vec3(panel::light_emission);
-
-			float kd = 1.0;
-			float ks = 0.0;
-			float kt = 0.0;
-
-			return marchPoint;
-		}
-		//std::cout << "March iteration: " << marchCountNoHit << std::endl;
-		marchCountNoHit++;
-		marchPoint += marchAmount; // Increment the current march point
-	}
-	// if no intersection was found, return a glm::vec3 of -1 
-	//std::cout << "no hit" << std::endl;
-	return marchPoint = glm::vec3(-1000);
-}
-
 // Iterates through every single object in the scene and finds the closest hit distance
 // assumes every object is a sphere
 Intersection wholeSceneIntersect(
@@ -481,15 +326,39 @@ Intersection wholeSceneIntersect(
 	// Variable to hold closest distance
 	d = 0;
 
-	// Infinite value for the intersection distance.
-	float inf = std::numeric_limits<float>::max();
-
-	// t to the inital 'ifinite' value
-	float t = inf; // TO BE RETURNED 
-
 	// Checking light intersect distance
 	//d = SphereIntersect(ray, panel::lightPos, 1.f);
-	Intersection intersection = voxelGridIntersect(ray, vGrid);
+
+	glm::vec3 vGridSize = vGrid.getDimensions();
+
+	Intersection intersection;
+
+	while(true) {
+		intersection = voxelGridIntersect(ray, vGrid);
+		//we know the intersection will be on a plane between 2 voxels
+		glm::vec3 norm = intersection.normal;
+		glm::vec3 fromVox = floor(intersection.position);
+		glm::vec3 toVox = floor(intersection.position);
+		if (norm.x == 1 || norm.y == 1 || norm.z == 1) {
+			toVox -= norm;
+		}
+		else {
+			fromVox += norm;
+		}
+
+		if (toVox.x >= vGridSize.x || toVox.x < 0 ||
+			toVox.y >= vGridSize.y || toVox.y < 0 ||
+			toVox.z >= vGridSize.z || toVox.z < 0) {
+			break;
+		}
+		if (!intersection.isValid)
+			break;
+
+		//loop until we aren't hitting empty space in the voxel grid
+		if (vGrid.at(toVox.x, toVox.y, toVox.z).material != Empty)
+			break;
+		ray.origin = intersection.position + ray.direction * 0.0001f;
+	}
 
 	if (intersection.isValid) {
 		d = intersection.distance;

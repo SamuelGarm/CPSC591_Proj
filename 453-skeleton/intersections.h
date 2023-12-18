@@ -15,12 +15,12 @@ struct Ray {
 	{}
 };
 
-struct Intersection {
+typedef struct Intersection {
 	bool isValid = false;
-	glm::vec3 position;
-	glm::vec3 normal;
-	float distance;
-};
+	glm::vec3 position = glm::vec3(0);
+	glm::vec3 normal = glm::vec3(0);
+	float distance = 0;
+} Intersection;
 
 Intersection planeIntersect(Ray ray, glm::vec3 p0, glm::vec3 norm);
 Intersection SphereIntersect(Ray ray, glm::vec3 pos, float radius);
