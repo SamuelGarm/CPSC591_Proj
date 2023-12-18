@@ -33,6 +33,8 @@
 #include "Camera.h"
 #include "FreeCamOpenGLSetup.h"
 
+#include "RayTraceVoxel.h"
+
 // EXAMPLE CALLBACKS
 class Assignment5 : public CallbackInterface {
 
@@ -118,6 +120,7 @@ public:
 
 				camera.panHorizontal(dx);
 				camera.panVertical(dy);
+				//std::cout << "Camera Direction: " << glm::to_string(camera.getDir()) << '\n';
 			}
 		}
 	}
@@ -221,8 +224,6 @@ int main() {
 		}
 
 		glm::mat4 V = a5->camera.getView();
-
-		
 
 		if (panel::bgColourChanged) {
 			bgColour = panel::clear_color;

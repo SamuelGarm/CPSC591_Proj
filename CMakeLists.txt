@@ -90,7 +90,7 @@ endif()
 
 # Compile our main application
 file(GLOB SOURCES
-    453-skeleton/*
+    453-skeleton/**
     thirdparty/glew-2.1.0/src/glew.c
 	thirdparty/imgui-1.78/imgui/*.cpp
 )

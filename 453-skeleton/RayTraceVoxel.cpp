@@ -482,14 +482,16 @@ bool wholeSceneIntersect(
 	d = 0;
 
 	// Infinite value for the intersection distance.
-	float inf = std::numeric_limits<float>::max();;
+	float inf = std::numeric_limits<float>::max();
 
 	// t to the inital 'ifinite' value
 	float t = inf; // TO BE RETURNED 
 
 	// Checking light intersect distance
-	d = SphereIntersect(ray, panel::lightPos, 1.f);
-	if (d < t) {
+	//d = SphereIntersect(ray, panel::lightPos, 1.f);
+	d = voxelGridIntersect(ray, vGrid);
+
+	if (d > 0) {
 		t = d;
 		objPos = panel::lightPos;
 		emission = glm::vec3(1.0); // emissive
@@ -497,81 +499,12 @@ bool wholeSceneIntersect(
 		k = glm::vec3(1.0, 0.0, 0.0); // diffuse
 	}
 
-	for (int x = 0; x < vGrid.getDimensions().x; x++) {
-		for (int y = 0; y < vGrid.getDimensions().y; y++) {
-			for (int z = 0; z < vGrid.getDimensions().z; z++) {
-				d = 0;
-
-				if (vGrid.at(x, y, z).material == Cluster) {
-					d = SphereIntersect(ray, glm::vec3(x, y, z), 0.5f);
-				}
-				
-				if (d != 0 && d < t) {
-					t = d;
-					objPos = glm::vec3(x, y, z);
-					emission = glm::vec3(0); // not emissive
-					k = glm::vec3(0.0, 0.0, 1.0); // transparent
-					// only grabs first colour
-					// TODO: need to grab all colours ?
-					fAcc *= vGrid.at(x, y, z).incLightWavelength.at(0);
-				}
-			}
-		}
-	}
-
-	bool isValid = t < inf;
+	bool isValid = d > 0;
 
 	return isValid;
 }
 
-float SphereIntersect(Ray ray, glm::vec3 pos, float radius)
-// ----------------------------------------------------------------------
-// This function, SphereIntersect, calculates the intersection points between
-// a ray and a sphere.
-//
-// Parameters:
-// - ray:    A Ray structure representing the ray to be tested for intersection.   
-// - pos:    The position (center) of the sphere.
-// - radius: The radius of the sphere.
-//
-// Returns:
-// - A float representing the distance along the ray where the intersection
-//   occurs or 0.0 if there's no intersection.
-// -----------------------------------------------------------------------
-{
-	// Calculate the vector from the ray's origin to the sphere's center.
-	glm::vec3 op = pos - ray.origin;
 
-	// A small epsilon value for numerical stability.
-	float eps = 0.01;
-
-	// Calculate the 'b' parameter in the quadratic equation.
-	float b = dot(op, ray.direction);
-
-	// Calculate the discriminant of the quadratic equation.
-	float det = b * b - dot(op, op) + radius * radius;
-
-	// If the discriminant is negative, there is no intersection.
-	if (det < 0.0) return 0.0;
-
-	// Compute the square root of the discriminant.
-	det = sqrt(det);
-
-	// Calculate the first intersection point, t1.
-	float t1 = b - det;
-
-	// If t1 is greater than the epsilon value, it's a valid intersection.
-	if (t1 > eps) return t1;
-
-	// Calculate the second intersection point, t2.
-	float t2 = b + det;
-
-	// If t2 is greater than the epsilon value, it's a valid intersection.
-	if (t2 > eps) return t2;
-
-	// If no valid intersection points were found, return 0.0.
-	return 0.0;
-}
 
 // Function to calculate final radiance 
 glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed, 
@@ -584,127 +517,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	glm::vec3 n = glm::vec3(0);
 	glm::vec3 k = glm::vec3(0);			// vector of kd, ks, kt
 
-	for (int i = 0; i != max_path_length; i++) {
-		/////////////// OLD DOUBLE MARCH INTERSECT //////////////////////
-		//// Checks intersection with opal voxel grid
-		//glm::vec3 intersectPoint = IntersectGrid(ray, vGrid);
-		//// if an intersection was found with the opal voxel grid
-		//// (as in the function returned a vlue other than -1)
-		//
-		////std::cout << "Intersect Point: " << intersectPoint.x << ","
-		////	<< intersectPoint.y << "," << intersectPoint.z << std::endl;
-
-		//if (intersectPoint != glm::vec3(-1)) {
-		//	//std::cout << "cluster hit" << std::endl;
-		//	
-		//	// Calculating the normal at the intersection point
-		//	// I'm honestly not sure why this works, its what's in CPSC 591 A2 in
-		//	// CalculateRadiance() 
-		//	// vec3 n = normalize(p - obj.position);  // Normal at the intersection point.
-		//	float n_x = intersectPoint.x - (int)intersectPoint.x;
-		//	float n_y = intersectPoint.y - (int)intersectPoint.y;
-		//	float n_z = intersectPoint.z - (int)intersectPoint.z;
-		//	glm::vec3 n = normalize(glm::vec3(n_x,n_y,n_z));
-		//	
-		//	// Updates the accumulation by multiplying the objects colour
-		//	fAcc *= vGrid.at((int)intersectPoint.x,
-		//		(int)intersectPoint.y,
-		//		(int)intersectPoint.z).incLightWavelength.at(0);
-
-		//	// generating random numbers for the BRDF
-		//	time_t seconds;
-		//	seconds = time(NULL);
-		//	float r1 = rand(seed);
-		//	seed.x = sin(r1 - float(seconds));
-		//	float r2 = rand(seed);
-		//	seconds = time(NULL);
-		//	seed.y = sin(r2 + float(seconds));
-
-		//	// TODO: Emission should ideally be sampled from the objects in each
-		//	// of the material functions
-		//	// The opal is not emissive 
-		//	glm::vec3 emission = glm::vec3(0);
-
-		//	apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission, finalCol);
-		//}
-		//else {
-		//	//std::cout << "Light hit" << std::endl;
-		//	
-		//	// Checks intersection with light
-		//	intersectPoint = IntersectLight(ray);
-		//	// if intersection with light was found
-		//	if (intersectPoint != glm::vec3(-1000)) {
-		//		float n_x = intersectPoint.x - (int)intersectPoint.x;
-		//		float n_y = intersectPoint.y - (int)intersectPoint.y;
-		//		float n_z = intersectPoint.z - (int)intersectPoint.z;
-		//		glm::vec3 n = normalize(glm::vec3(n_x, n_y, n_z));
-
-		//		// White light
-		//		fAcc *= glm::vec3(1.0);
-
-		//		// generating random numbers for the BRDF
-		//		time_t seconds;
-		//		seconds = time(NULL);
-		//		float r1 = rand(seed);
-		//		seed.x = sin(r1 - float(seconds));
-		//		float r2 = rand(seed);
-		//		seconds = time(NULL);
-		//		seed.y = sin(r2 + float(seconds));
-
-		//		// TODO: Emission should ideally be sampled from the objects in each
-		//		// of the material functions
-		//		// the light source is emissive (can put in a value from 0.0-30.0)
-		//		glm::vec3 emission = glm::vec3(panel::light_emission);
-
-		//		apply_BRDF(ray, intersectPoint, n, r1, r2, seed, fAcc, emission,finalCol);
-		//	}
-		//}
-		/////////////// OLD DOUBLE MARCH INTERSECT END //////////////////////
-		
-		//////////// SPHERE TEST /////////////////////////////
-		//float hitDist = SphereIntersect(ray, glm::vec3(0), 30.f);
-		//if (hitDist != 0.0) {
-		//	//return glm::vec3(1);
-		//	//std::cout << "HIT\n";
-		//	// generating random numbers for the BRDF
-		//	time_t seconds;
-		//	seconds = time(NULL);
-		//	float r1 = rand(seed);
-		//	seed.x = sin(r1 - float(seconds));
-		//	float r2 = rand(seed);
-		//	seconds = time(NULL);
-		//	seed.y = sin(r2 + float(seconds));
-
-		//	fAcc *= glm::vec3(0, 1, 0);
-
-		//	k.x = 0.0;
-		//	k.y = 0.0;
-		//	k.z = 1.0;
-
-		//	glm::vec3 intersectPoint = ray.origin + ray.direction * hitDist;
-		//	glm::vec3 n = normalize(intersectPoint - glm::vec3(0));
-		//	glm::vec3 emission = glm::vec3(1);
-		//	apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
-		//}
-		//////////////////// SPHERE TEST END ///////////////////
-		
-
-		/////////////// VOXEL & LIGHT INTERSECT ////////////////
-		//glm::vec3 intersectPoint = Intersect(ray, vGrid, fAcc, emission, n);
-		//if (intersectPoint != glm::vec3(-1000)) {
-		//	// generating random numbers for the BRDF
-		//	time_t seconds;
-		//	seconds = time(NULL);
-		//	float r1 = rand(seed);
-		//	seed.x = sin(r1 - float(seconds));
-		//	float r2 = rand(seed);
-		//	seconds = time(NULL);
-		//	seed.y = sin(r2 + float(seconds));
-
-		//	apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
-		//}
-		/////////////// VOXEL & LIGHT INTERSECT END ////////////////
-
+	for (int i = 0; i < max_path_length; i++) {
 		float hitDist = 0;
 		glm::vec3 objPos = glm::vec3(0);
 		if (wholeSceneIntersect(ray, vGrid, objPos, hitDist,emission,fAcc,k)) {
@@ -725,61 +538,6 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 
 	}
 	return finalCol;
-}
-
-// Main function for ray tracing
-glm::vec3 RayTraceVoxel(
-	Camera &cam,
-	glm::vec2 windowSize,
-	glm::vec2 fragCoord,
-	int sample_count, 
-	int max_path_length,
-	VoxelGrid<clusterData> &vGrid) {
-
-	fRadiance = glm::vec3(0); // clear the radiance vector
-
-
-	// Calculate vectors for camera axes
-	glm::vec3 cy = glm::vec3(0.0, 1.0, 0.0);
-	glm::vec3 cx = normalize(glm::cross(cam.getDir(), cy));
-	cy = normalize(glm::cross(cam.getDir(), cx));
-	cx *= windowSize.x / windowSize.y;
-	cx *= 0.8;
-	cy *= -0.8;
-
-	float camOffset = 10.f;
-
-	for (int i = 0; i != sample_count; i++) {
-
-		// gets a random pixel - ideally should be the current fragment position
-		//glm::vec2 randFrag = getRandPixel(windowSize);
-		// Random stuff to offset the ray
-		float r1 = glm::linearRand<float>(0, 1);
-		float dx = r1 * 2.0 - 1.0;
-		float r2 = glm::linearRand<float>(0, 1);
-		float dy = r2 * 2.0 - 1.0;
-
-		// d is the direction of the ray
-		// This changes it every fragment so it's slightly different
-		glm::vec3 d = cx * ((dx + fragCoord.x) / windowSize.x - .5f) +
-			cy * ((dy + fragCoord.y) / windowSize.y - .5f) +
-			cam.getDir();
-
-		Ray ray;
-		ray.origin = cam.getPos()+d*camOffset;
-		ray.direction = normalize(d);
-
-		glm::vec2 seed = glm::vec2(r1, float(i));
-
-		fRadiance += CalculateRadiance(ray, seed, max_path_length, vGrid);
-	}
-
-	// Compute the average radiance over the samples
-	fRadiance /= float(sample_count);
-
-	// gamma correction
-	const float gamma = 2.2;
-	return fRadiance = pow(fRadiance, glm::vec3(1.0 / gamma));
 }
 
 // Main function for ray tracing - with a ray already passed and calculated for each pixel
@@ -845,7 +603,12 @@ void rayTraceImage(
 	image.Initialize();
 	std::vector<RayAndPixel> rays = getRaysForViewpoint(image, cam);
 
+	int count = 0;
 	for (auto const& r : rays) {
+		count++;
+		if (count % 5000 == 0) {
+			std::cout << ((float)count * 100) / (image.Width() * image.Height()) << "%\n";
+		}
 		glm::vec3 color = RayTraceVoxelV2(r, sample_count, max_path_length, vGrid);
 		image.SetPixel(r.x, r.y, color);
 		//std::cout << "colour: " << color.x << "," << color.y << "," << color.z << std::endl;

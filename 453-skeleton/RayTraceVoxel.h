@@ -9,18 +9,7 @@
 #include <time.h>
 #include <limits>
 #include <random>
-
-struct Ray {
-	glm::vec3 origin;
-	glm::vec3 direction;
-
-	Ray(glm::vec3 point, glm::vec3 dir) {
-		origin = point;
-		direction = dir;
-	}
-	Ray() : origin(glm::vec3(0, 0, 0)), direction(glm::vec3(0, 0, 0))
-	{}
-};
+#include "intersections.h"
 
 struct RayAndPixel {
 	Ray ray;
@@ -95,20 +84,12 @@ bool wholeSceneIntersect(
 	glm::vec3& fAcc,
 	glm::vec3& k);
 
-float SphereIntersect(Ray ray, glm::vec3 pos, float radius);
 
 
 glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 	int max_path_length,
 	VoxelGrid<clusterData> &vGrid);
 
-glm::vec3 RayTraceVoxel(
-	Camera& cam,
-	glm::vec2 windowSize,
-	glm::vec2 fragCoord,
-	int sample_count,
-	int max_path_length,
-	VoxelGrid<clusterData>& vGrid);
 
 glm::vec3 RayTraceVoxelV2(
 	RayAndPixel r,
