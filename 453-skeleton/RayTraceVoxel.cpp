@@ -349,14 +349,17 @@ Intersection wholeSceneIntersect(
 		if (toVox.x >= vGridSize.x || toVox.x < 0 ||
 			toVox.y >= vGridSize.y || toVox.y < 0 ||
 			toVox.z >= vGridSize.z || toVox.z < 0) {
+			intersection.isValid = false;
 			break;
 		}
 		if (!intersection.isValid)
 			break;
 
 		//loop until we aren't hitting empty space in the voxel grid
-		if (vGrid.at(toVox.x, toVox.y, toVox.z).material != Empty)
+		if (vGrid.at(toVox.x, toVox.y, toVox.z).material != Empty) {
 			break;
+			intersection.isValid = false;
+		}
 		ray.origin = intersection.position + ray.direction * 0.0001f;
 	}
 
