@@ -15,15 +15,22 @@ struct Ray {
 	{}
 };
 
-float planeIntersect(Ray ray, glm::vec3 p0, glm::vec3 norm);
-float SphereIntersect(Ray ray, glm::vec3 pos, float radius);
+struct Intersection {
+	bool isValid = false;
+	glm::vec3 position;
+	glm::vec3 normal;
+	float distance;
+};
 
+Intersection planeIntersect(Ray ray, glm::vec3 p0, glm::vec3 norm);
+Intersection SphereIntersect(Ray ray, glm::vec3 pos, float radius);
 
 template <typename T>
-float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
+Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
+	Intersection result;
 	//find which planes would be visible to the ray
 	glm::vec3 raySigns = glm::vec3(glm::sign(ray.direction.x), glm::sign(ray.direction.y), glm::sign(ray.direction.z));
-	float intersectionDistance = std::numeric_limits<float>::max();
+	result.distance = std::numeric_limits<float>::max();
 
 	//voxel grids (right now) are always centered with the bottom corner at 0,0,0
 	glm::vec3 vGridSmallCorner = glm::vec3(0, 0, 0);
@@ -44,13 +51,18 @@ float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 		//if xp0 is in bounds of the vGrid then test for intersection with it
 		if (xp0 >= 0 && xp0 <= vGridLargeCorner.x) {
 			//update the intersection distance
-			float d = planeIntersect(ray, glm::vec3(xp0, 0, 0), glm::vec3(1, 0, 0));
+			float d = planeIntersect(ray, glm::vec3(xp0, 0, 0), glm::vec3(1, 0, 0)).distance;
 			//check that the collision point is in voxel grid bounds on all dimensions
 			glm::vec3 intersectionPoint = ray.origin + ray.direction * d;
 			if (d > 0 && intersectionPoint.x >= 0 && intersectionPoint.y >= 0 && intersectionPoint.z >= 0 &&
 				intersectionPoint.x <= vGridLargeCorner.x && intersectionPoint.y <= vGridLargeCorner.y && intersectionPoint.z <= vGridLargeCorner.z) {
 				//if the point is valid update the intersection distance
-				intersectionDistance = std::min(d, intersectionDistance);
+				if (d < result.distance) {
+					result.distance = d;
+					result.isValid = true;
+					result.normal = glm::vec3(1, 0, 0);
+					result.position = ray.origin + ray.direction * d;
+				}
 			}
 		}
 	}
@@ -65,13 +77,18 @@ float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 		//if xp0 is in bounds of the vGrid then test for intersection with it
 		if (xp0 >= 0 && xp0 <= vGridLargeCorner.x) {
 			//update the intersection distance
-			float d = planeIntersect(ray, glm::vec3(xp0, 0, 0), glm::vec3(1, 0, 0));
+			float d = planeIntersect(ray, glm::vec3(xp0, 0, 0), glm::vec3(1, 0, 0)).distance;
 			//check that the collision point is in voxel grid bounds on all dimensions
 			glm::vec3 intersectionPoint = ray.origin + ray.direction * d;
 			if (d > 0 && intersectionPoint.x >= 0 && intersectionPoint.y >= 0 && intersectionPoint.z >= 0 &&
 				intersectionPoint.x <= vGridLargeCorner.x && intersectionPoint.y <= vGridLargeCorner.y && intersectionPoint.z <= vGridLargeCorner.z) {
 				//if the point is valid update the intersection distance
-				intersectionDistance = std::min(d, intersectionDistance);
+				if (d < result.distance) {
+					result.distance = d;
+					result.isValid = true;
+					result.normal = glm::vec3(-1, 0, 0);
+					result.position = ray.origin + ray.direction * d;
+				}
 			}
 		}
 	}
@@ -91,13 +108,18 @@ float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 		//if xp0 is in bounds of the vGrid then test for intersection with it
 		if (yp0 >= 0 && yp0 <= vGridLargeCorner.y) {
 			//update the intersection distance
-			float d = planeIntersect(ray, glm::vec3(0, yp0, 0), glm::vec3(0, 1, 0));
+			float d = planeIntersect(ray, glm::vec3(0, yp0, 0), glm::vec3(0, 1, 0)).distance;
 			//check that the collision point is in voxel grid bounds on all dimensions
 			glm::vec3 intersectionPoint = ray.origin + ray.direction * d;
 			if (d > 0 && intersectionPoint.x >= 0 && intersectionPoint.y >= 0 && intersectionPoint.z >= 0 &&
 				intersectionPoint.x <= vGridLargeCorner.x && intersectionPoint.y <= vGridLargeCorner.y && intersectionPoint.z <= vGridLargeCorner.z) {
 				//if the point is valid update the intersection distance
-				intersectionDistance = std::min(d, intersectionDistance);
+				if (d < result.distance) {
+					result.distance = d;
+					result.isValid = true;
+					result.normal = glm::vec3(0, 1, 0);
+					result.position = ray.origin + ray.direction * d;
+				}
 			}
 		}
 	}
@@ -112,13 +134,18 @@ float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 		//if xp0 is in bounds of the vGrid then test for intersection with it
 		if (yp0 >= 0 && yp0 <= vGridLargeCorner.y) {
 			//update the intersection distance
-			float d = planeIntersect(ray, glm::vec3(0, yp0, 0), glm::vec3(0, 1, 0));
+			float d = planeIntersect(ray, glm::vec3(0, yp0, 0), glm::vec3(0, 1, 0)).distance;
 			//check that the collision point is in voxel grid bounds on all dimensions
 			glm::vec3 intersectionPoint = ray.origin + ray.direction * d;
 			if (d > 0 && intersectionPoint.x >= 0 && intersectionPoint.y >= 0 && intersectionPoint.z >= 0 &&
 				intersectionPoint.x <= vGridLargeCorner.x && intersectionPoint.y <= vGridLargeCorner.y && intersectionPoint.z <= vGridLargeCorner.z) {
 				//if the point is valid update the intersection distance
-				intersectionDistance = std::min(d, intersectionDistance);
+				if (d < result.distance) {
+					result.distance = d;
+					result.isValid = true;
+					result.normal = glm::vec3(0, -1, 0);
+					result.position = ray.origin + ray.direction * d;
+				}
 			}
 		}
 	}
@@ -138,13 +165,18 @@ float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 		//if xp0 is in bounds of the vGrid then test for intersection with it
 		if (zp0 >= 0 && zp0 <= vGridLargeCorner.z) {
 			//update the intersection distance
-			float d = planeIntersect(ray, glm::vec3(0, 0, zp0), glm::vec3(0, 0, 1));
+			float d = planeIntersect(ray, glm::vec3(0, 0, zp0), glm::vec3(0, 0, 1)).distance;
 			//check that the collision point is in voxel grid bounds on all dimensions
 			glm::vec3 intersectionPoint = ray.origin + ray.direction * d;
 			if (d > 0 && intersectionPoint.x >= 0 && intersectionPoint.y >= 0 && intersectionPoint.z >= 0 &&
 				intersectionPoint.x <= vGridLargeCorner.x && intersectionPoint.y <= vGridLargeCorner.y && intersectionPoint.z <= vGridLargeCorner.z) {
 				//if the point is valid update the intersection distance
-				intersectionDistance = std::min(d, intersectionDistance);
+				if (d < result.distance) {
+					result.distance = d;
+					result.isValid = true;
+					result.normal = glm::vec3(0, 0, 1);
+					result.position = ray.origin + ray.direction * d;
+				}
 			}
 		}
 	}
@@ -159,18 +191,21 @@ float voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 		//if xp0 is in bounds of the vGrid then test for intersection with it
 		if (zp0 >= 0 && zp0 <= vGridLargeCorner.z) {
 			//update the intersection distance
-			float d = planeIntersect(ray, glm::vec3(0, 0, zp0), glm::vec3(0, 0, 1));
+			float d = planeIntersect(ray, glm::vec3(0, 0, zp0), glm::vec3(0, 0, 1)).distance;
 			//check that the collision point is in voxel grid bounds on all dimensions
 			glm::vec3 intersectionPoint = ray.origin + ray.direction * d;
 			if (d > 0 && intersectionPoint.x >= 0 && intersectionPoint.y >= 0 && intersectionPoint.z >= 0 &&
 				intersectionPoint.x <= vGridLargeCorner.x && intersectionPoint.y <= vGridLargeCorner.y && intersectionPoint.z <= vGridLargeCorner.z) {
 				//if the point is valid update the intersection distance
-				intersectionDistance = std::min(d, intersectionDistance);
+				if (d < result.distance) {
+					result.distance = d;
+					result.isValid = true;
+					result.normal = glm::vec3(0, 0, -1);
+					result.position = ray.origin + ray.direction * d;
+				}
 			}
 		}
 	}
 
-	if (intersectionDistance == std::numeric_limits<float>::max())
-		intersectionDistance = 0;
-	return intersectionDistance;
+	return result;
 }

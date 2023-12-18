@@ -489,19 +489,17 @@ bool wholeSceneIntersect(
 
 	// Checking light intersect distance
 	//d = SphereIntersect(ray, panel::lightPos, 1.f);
-	d = voxelGridIntersect(ray, vGrid);
+	Intersection intersection = voxelGridIntersect(ray, vGrid);
 
-	if (d > 0) {
-		t = d;
+	if (intersection.isValid) {
+		d = intersection.distance;
 		objPos = panel::lightPos;
 		emission = glm::vec3(1.0); // emissive
 		fAcc *= glm::vec3(1.0);    // white
 		k = glm::vec3(1.0, 0.0, 0.0); // diffuse
 	}
 
-	bool isValid = d > 0;
-
-	return isValid;
+	return intersection.isValid;
 }
 
 
@@ -521,6 +519,7 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 		float hitDist = 0;
 		glm::vec3 objPos = glm::vec3(0);
 		if (wholeSceneIntersect(ray, vGrid, objPos, hitDist,emission,fAcc,k)) {
+			return glm::vec3(1, 0, 0);
 			// generating random numbers for the BRDF
 			time_t seconds;
 			seconds = time(NULL);
