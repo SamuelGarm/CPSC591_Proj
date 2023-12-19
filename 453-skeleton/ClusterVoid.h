@@ -35,3 +35,5 @@ std::vector<glm::vec3> ellipsoid(float a, float b, float c);
 std::vector<glm::vec3> sphereParameterization(float radius);
 glm::vec3 postProcessVec(glm::vec3 vec, float a, float b, float c);
 void trimVGrid(VoxelGrid<clusterData>& vGrid);
+
+void fillGridRandColours(VoxelGrid<clusterData>& vGrid);

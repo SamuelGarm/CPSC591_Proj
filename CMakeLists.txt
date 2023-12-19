@@ -90,7 +90,7 @@ endif()
 
 # Compile our main application
 file(GLOB SOURCES
-    453-skeleton/*
+    453-skeleton/**
     thirdparty/glew-2.1.0/src/glew.c
 	thirdparty/imgui-1.78/imgui/*.cpp
 )
@@ -106,7 +106,7 @@ foreach(file ${files})
 	configure_file(${file} shaders/${name})
 endforeach()
 
-add_executable(${APP_NAME} ${SOURCES} "453-skeleton/ClusterVoid.cpp" "453-skeleton/ClusterVoid.h")
+add_executable(${APP_NAME} ${SOURCES} "453-skeleton/ClusterVoid.cpp" "453-skeleton/ClusterVoid.h" "453-skeleton/photonmap.cpp" "453-skeleton/RayTraceVoxel.cpp" "453-skeleton/RayTraceVoxel.h")
 target_include_directories(${APP_NAME} PRIVATE ${INCLUDES})
 target_link_libraries(${APP_NAME} ${LIBRARIES})
 target_compile_definitions(${APP_NAME} PRIVATE ${DEFINITIONS})
