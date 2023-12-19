@@ -14,6 +14,7 @@ struct clusterData {
 	std::vector<glm::vec3> incLightWavelength;	// Wavelength (colour) of incoming light
 	std::vector<glm::vec3> incLightAmplitude;	// Amplitude (energy) of incoming light
 	std::vector<glm::vec3> incLightDir;			// std vector because multiple incoming lights
+	glm::vec3 normal = glm::vec3(0, 0, 0); //the normal as taken from the voxel position to the center of the opal
 	glm::vec3 orientation = glm::vec3(0.0, 0.0, 0.0); // Orientation of voxel / cluster (euler angle difference from the up vector)
 	Material material = Empty;					// Cluster Type
 };
@@ -36,4 +37,4 @@ std::vector<glm::vec3> sphereParameterization(float radius);
 glm::vec3 postProcessVec(glm::vec3 vec, float a, float b, float c);
 void trimVGrid(VoxelGrid<clusterData>& vGrid);
 
-void fillGridRandColours(VoxelGrid<clusterData>& vGrid);
+//void fillGridRandColours(VoxelGrid<clusterData>& vGrid);

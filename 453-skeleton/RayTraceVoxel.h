@@ -94,3 +94,5 @@ void rayTraceImage(
 	VoxelGrid<clusterData>& vGrid);
 
 glm::vec2 getRandPixel(glm::vec2& windowSize);
+
+glm::vec3 wavelengthToRGB(float wavelength);

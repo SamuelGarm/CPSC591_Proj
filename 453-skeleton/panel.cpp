@@ -208,7 +208,7 @@ void updateMenu() {
                 distributeVoidClusterV2(vGrid, meanRadius, sampleNeighbours);
             }
             trimVGrid(vGrid);
-            fillGridRandColours(vGrid);
+            //fillGridRandColours(vGrid);
             pipelineChanged = true;
         }
     }

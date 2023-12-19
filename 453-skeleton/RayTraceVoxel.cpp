@@ -330,10 +330,11 @@ Intersection wholeSceneIntersect(
 	//d = SphereIntersect(ray, panel::lightPos, 1.f);
 
 	glm::vec3 vGridSize = vGrid.getDimensions();
-
+	glm::vec3 toVox;
 	Intersection intersection;
 
 	while(true) {
+		ray.origin += ray.direction * 0.0001f;
 		intersection = voxelGridIntersect(ray, vGrid);
 		//if the intersection is invalid just break the loop
 		if (!intersection.isValid)
@@ -345,7 +346,7 @@ Intersection wholeSceneIntersect(
 		//calculate the voxel index of the voxel the ray is leaving and the one it is entering over the plane
 		glm::vec3 norm = intersection.normal;
 		glm::vec3 fromVox = floor(intersection.position);
-		glm::vec3 toVox = floor(intersection.position);
+		toVox = floor(intersection.position);
 		if (norm.x == 1 || norm.y == 1 || norm.z == 1) {
 			toVox -= norm;
 		}
@@ -374,12 +375,55 @@ Intersection wholeSceneIntersect(
 		emission = glm::vec3(1.0); // emissive
 		fAcc *= glm::vec3(1.0);    // white
 		k = glm::vec3(1.0, 0.0, 0.0); // diffuse
+		intersection.normal = vGrid.at(toVox.x, toVox.y, toVox.z).normal;
 	}
 
 	return intersection;
 }
 
+glm::vec3 calculateDiffraction(Ray ray, glm::vec3 normal, glm::vec3 bodyCol, float bodyTransparency, float gratingPeriod) {
+	glm::vec3 geometricNorm = normal; //vector from center of opal to voxel, used for shading 
+	glm::vec3 cameraDir = -ray.direction;
 
+	
+		//render the cluster
+		float camAngle = acos(glm::dot(cameraDir, normal));
+		//float lightAngle = acos(glm::dot(lightDir, normal));
+		float wavelength = ((sin(camAngle)/* - sin(lightAngle)*/) * gratingPeriod) / 1.f;
+		wavelength = std::max(wavelength, 0.f);
+	
+		float maxWavelength = 750;
+		float minWaveLength = 380;
+		/*
+		if ((flags & 1) == 1) {
+			maxWavelength = 0.247 * particle_diameter; //fromSamders 1964 Color of Precious Opal
+			minWaveLength = 0.72 * maxWavelength;
+		}*/
+	
+		glm::vec3 col = glm::vec3(0);
+	
+		if (wavelength < 380 || wavelength < minWaveLength || wavelength > 750 || wavelength > maxWavelength) {
+			col = bodyCol;
+		}
+		else if (wavelength >= 380.f && wavelength <= 440.f) {
+			float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
+			float R = (-(wavelength - 440) / (440 - 380)) * attenuation;
+			float B = 1.0 * attenuation;
+			col = glm::vec3(R + (1 - attenuation) * bodyCol.r, bodyCol.g, B + (1 - attenuation) * bodyCol.b);
+	
+		}
+		else if (wavelength >= 645 && wavelength <= 750) {
+			float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
+			float R = 1.0 * attenuation;
+			col = glm::vec3(R + (1 - attenuation) * bodyCol.r, bodyCol.g, bodyCol.b);
+		}
+		else {
+			col = wavelengthToRGB(wavelength);
+		}
+	
+		return glm::vec4(col, 1);
+	
+}
 
 // Function to calculate final radiance 
 glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed, 
@@ -410,7 +454,9 @@ glm::vec3 CalculateRadiance(Ray &ray, glm::vec2 seed,
 			glm::vec3 intersectPoint = closestIntersection.position;
 			glm::vec3 n = closestIntersection.normal;
 
-			apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
+			//apply_BRDF(ray, intersectPoint, n, r1, r2, seed, k, fAcc, emission, finalCol);
+			//calculate diffraction color
+			finalCol = calculateDiffraction(ray, n, glm::vec3(0), 0, 700);
 		}
 
 	}
@@ -488,7 +534,6 @@ void rayTraceImage(
 		}
 		glm::vec3 color = RayTraceVoxelV2(r, sample_count, max_path_length, vGrid);
 		image.SetPixel(r.x, r.y, color);
-		//std::cout << "colour: " << color.x << "," << color.y << "," << color.z << std::endl;
 	}
 }
 
@@ -507,4 +552,52 @@ glm::vec2 getRandPixel(glm::vec2 &windowSize) {
 	pixels.y = (distry(gen));
 
 	return pixels;
+}
+
+
+glm::vec3 wavelengthToRGB(float wavelength)
+{
+	float R = 0.f;
+	float G = 0.f;
+	float B = 0.f;
+
+	if (wavelength >= 380.f && wavelength <= 440.f) {
+		float attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380);
+		R = (-(wavelength - 440) / (440 - 380)) * attenuation;
+		G = 0.0;
+		B = 1.0 * attenuation;
+	}
+	else if (wavelength >= 440 && wavelength <= 490) {
+		R = 0.0;
+		G = (wavelength - 440) / (490 - 440);
+		B = 1.0;
+	}
+	else if (wavelength >= 490 && wavelength <= 510) {
+		R = 0.0;
+		G = 1.0;
+		B = -(wavelength - 510) / (510 - 490);
+	}
+	else if (wavelength >= 510 && wavelength <= 580) {
+		R = (wavelength - 510) / (580 - 510);
+		G = 1.0;
+		B = 0.0;
+	}
+	else if (wavelength >= 580 && wavelength <= 645) {
+		R = 1.0;
+		G = -(wavelength - 645) / (645 - 580);
+		B = 0.0;
+	}
+	else if (wavelength >= 645 && wavelength <= 750) {
+		float attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645);
+		R = 1.0 * attenuation;
+		G = 0.0;
+		B = 0.0;
+	}
+	else {
+		R = 0.0;
+		G = 0.0;
+		B = 0.0;
+	}
+
+	return glm::vec3(R, G, B);
 }

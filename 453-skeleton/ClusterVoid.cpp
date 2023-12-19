@@ -71,7 +71,7 @@ void setAllVoid(VoxelGrid<clusterData>& vGrid) {
 			for (int k = 0; k < vGrid.getDimensions().z; k++) {
 				vGrid.at(i, j, k).material = Void;
 				vGrid.at(i, j, k).orientation = glm::vec3(0);
-
+				vGrid.at(i, j, k).normal = glm::vec3(i, j, k) - (vGrid.getDimensions() / 2.f);
 			}
 		}
 	}
