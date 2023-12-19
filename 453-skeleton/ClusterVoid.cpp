@@ -601,6 +601,7 @@ void trimVGrid(VoxelGrid<clusterData>& vGrid) {
 	}
 }
 
+/*
 // Fills the vGrid with random colours
 void fillGridRandColours(VoxelGrid<clusterData>& vGrid) {
 	srand(time(0));
@@ -618,4 +619,4 @@ void fillGridRandColours(VoxelGrid<clusterData>& vGrid) {
 			}
 		}		
 	}
-}
+}*/

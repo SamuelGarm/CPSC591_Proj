@@ -94,3 +94,5 @@ void rayTraceImage(
 	VoxelGrid<clusterData>& vGrid);
 
 glm::vec2 getRandPixel(glm::vec2& windowSize);
+
+std::vector<RayAndPixel> getRaysForViewpoint(ImageBuffer& image, Camera& cam);

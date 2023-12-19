@@ -146,7 +146,31 @@ public:
 
 };
 
+std::vector<glm::vec2> radiusPoint(float r, int subDivisions, int sSampleCount) {
+	std::vector<glm::vec2> coords;
 
+	// divides the radius by the subdivision, 
+	// loop will sample the sRadius, it increases
+	// in an even linear fashion
+	float sRadius = r / (float)subDivisions;
+
+	// Loops through the number of subdivisions
+	for (int i = 0.f; i < subDivisions; i++) {
+		// Samples points on the smallest circle first
+		// Given the sampleCount
+		for (float u = 0; u < sSampleCount; u++) {
+			float x = sRadius * cos(u);
+			float y = sRadius * sin(u);
+
+			coords.push_back(glm::vec2(x, y));
+		}
+		// Doubles the sample count
+		sSampleCount *= 2;
+		// Increases the radius for the next loop
+		sRadius += sRadius;
+	}
+	return coords;
+}
 
 int main() {
 	Log::debug("Starting main");
@@ -174,7 +198,7 @@ int main() {
 	distributeVoidClusters(vGrid, true);
 	//distributeVoidClusterV2(vGrid, 1.f);
 	trimVGrid(vGrid);
-	fillGridRandColours(vGrid);
+	//fillGridRandColours(vGrid);
 		
 	Graphics::setupOpenGL();
 	Graphics::loadVoxelgrid(vGrid);
@@ -230,7 +254,7 @@ int main() {
 			panel::bgColourChanged = false;
 		}
 
-		if (panel::renderPipeline != 2) {
+		if (panel::renderPipeline < 2) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			glDisable(GL_FRAMEBUFFER_SRGB);
 			glEnable(GL_DEPTH_TEST);
@@ -239,13 +263,32 @@ int main() {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
-		else if (panel::renderPipeline == 2) {
+		else if (panel::renderPipeline >= 2) {
 			glEnable(GL_FRAMEBUFFER_SRGB);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 
 		using namespace Graphics;
 
+		if (panel::castPhotons) {
+			panel::castPhotons = false;
+			std::vector<glm::vec2> rayPoints = radiusPoint(60, 10, 1);
+			//cast photons from a light into the scene
+
+			for (int i = 0; i < rayPoints.size(); i++) { //radius of the light
+					//for a sample of light wavelengths
+				if (i % 500)
+					std::cout << ((float)i / rayPoints.size()) * 100.f << "%\n";
+				for (int wavelength = 380; wavelength <= 750; wavelength += 10) { //380 - 750
+					Photon photon;
+					photon.wavelength = wavelength;
+					photon.pos = opalCenter + glm::vec3(opalCenter.x + rayPoints[i].x, opalCenter.y * 2.f, opalCenter.z + rayPoints[i].y);
+					photon.dir = glm::vec3(0, -1, 0);
+					tracePhoton(photon, vGrid);
+				}
+			}
+			std::cout << "Photon casting finished\n";
+		}
 
 		// Orientation RGB Display
 		if (panel::renderPipeline == 0) {
@@ -308,6 +351,14 @@ int main() {
 			outputImage.SaveToFile("Output.png");
 			outputImage.Render();
 			std::cout << "Raytracing finished\n";
+		}
+		// Photon mapping
+		else if (panel::renderPipeline == 3) {
+			std::cout << "photon collecting\n";
+			collectPhotons(outputImage, a5->camera, 1, vGrid);
+			outputImage.SaveToFile("Output.png");
+			outputImage.Render();
+			std::cout << "photon collection finished\n";
 		}
 	
 

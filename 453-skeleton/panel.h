@@ -56,7 +56,7 @@ extern int clusterMode;
 extern float meanRadius;
 extern bool sampleNeighbours;
 extern bool fixedRadius;
-extern bool retraceImage;
+extern bool castPhotons;
 // reset
 extern bool resetView;
 

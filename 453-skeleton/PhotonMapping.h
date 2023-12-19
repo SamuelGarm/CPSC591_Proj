@@ -1,11 +1,13 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include "Photon.h"
 #include "ClusterVoid.h"
 #include "iostream"
 #include "RayTraceVoxel.h"
 #include <algorithm>
+#include "intersections.h"
 
 glm::vec3 wavelengthToRGB(float wavelength)
 {
@@ -55,39 +57,66 @@ glm::vec3 wavelengthToRGB(float wavelength)
 }
 
 glm::vec3 collectRadiance(Ray ray, VoxelGrid<clusterData>& vGrid) {
-	const glm::vec3 intersection= IntersectGrid(ray, vGrid);
-	const clusterData& data = vGrid.at(intersection.x, intersection.y, intersection.z);
-	glm::vec3 finalCol = glm::vec3(0);
-	for (const Photon& photon : data.photons) {
-		finalCol += wavelengthToRGB(photon.wavelength) * 1.f; //1 is a placeholder for intensity
-	}
-	float maxValue = std::max(finalCol.r, std::max(finalCol.g, finalCol.b));
-	if (maxValue > 1) {
-		finalCol /= maxValue; //normalize the range
-	}
-	return finalCol;
-}
+	glm::vec3 vGridSize = vGrid.getDimensions();
+	Intersection intersection = voxelGridIntersect(ray, vGrid);
+	const glm::vec3 intersectPos = intersection.position;
+	glm::vec3 toVox = floor(intersection.position);
 
-void tracePhoton(Photon& photon, VoxelGrid<clusterData>& vGrid) {
-	int iterations = 100;
-	while (iterations > 0) {
-		iterations--;
-		Ray photonRay = { photon.pos, photon.dir };
-		//calculate intersection with the cluster
-		glm::vec3 intersection = IntersectGrid(photonRay, vGrid);
-		if (intersection.x == -1 && intersection.y == -1 && intersection.z == -1) {
+	while (true) {
+		intersection = voxelGridIntersect(ray, vGrid);
+		//if the intersection is invalid just break the loop
+		if (!intersection.isValid)
+			break;
+
+		ray.origin = intersection.position;
+
+		//we know the intersection will be on a plane between 2 voxels
+		//calculate the voxel index of the voxel the ray is leaving and the one it is entering over the plane
+		glm::vec3 norm = intersection.normal;
+		glm::vec3 fromVox = floor(intersection.position);
+		toVox = floor(intersection.position);
+		if (norm.x == 1 || norm.y == 1 || norm.z == 1) {
+			toVox -= norm;
+		}
+		else {
+			fromVox += norm;
+		}
+
+		//if the voxel we are entering is outside the boundaries it is not a valid intersection
+		if (toVox.x >= vGridSize.x || toVox.x < 0 ||
+			toVox.y >= vGridSize.y || toVox.y < 0 ||
+			toVox.z >= vGridSize.z || toVox.z < 0) {
+			intersection.isValid = false;
 			break;
 		}
-		clusterData data = vGrid.at(intersection.x, intersection.y, intersection.z);
-		data.photons.push_back(photon); //store the incoming direction of the photon
-		//rotate the unit axis and find which one has the smallest dot product
-		handleIntersection(photon, glm::vec3(1, 0, 0), 900);
-	}
-}
 
-void handleIntersection(Photon& photon, glm::vec3 surfaceNorm, const int gratingPeriod) {
-	//handle only rank 0 reflection for now
-	DiffractPhoton(photon, surfaceNorm, gratingPeriod, false, 0);
+
+		//loop until we aren't hitting empty space in the voxel grid
+		if (vGrid.at(toVox.x, toVox.y, toVox.z).material == Cluster) {
+			break;
+		}
+	}
+
+
+	glm::vec3 finalCol = glm::vec3(0);
+	if (intersection.isValid) {
+		
+		const clusterData& data = vGrid.at(toVox.x, toVox.y, toVox.z);
+		if(data.photons.size() > 0)
+			return glm::vec3(1, 0, 0);
+			//std::cout << "Cluster has " << data.photons.size() << " Photons\n";
+		for (const Photon& photon : data.photons) {
+			float angle = acos(glm::dot(photon.dir, -ray.direction));
+			float B = (3.1415*panel::particleDiameter*sin(angle)) / (photon.wavelength);
+			float intensity = powf(sin(B) / B, 2);
+			finalCol += wavelengthToRGB(photon.wavelength) * intensity;
+		}
+		float maxValue = std::max(finalCol.r, std::max(finalCol.g, finalCol.b));
+		if (maxValue > 1) {
+			finalCol /= maxValue; //normalize the range
+		}
+	}
+	return finalCol;
 }
 
 void DiffractPhoton(Photon& photon, glm::vec3 surfaceNorm, const int gratingPeriod, const bool transmissive, const int rank) {
@@ -105,17 +134,99 @@ void DiffractPhoton(Photon& photon, glm::vec3 surfaceNorm, const int gratingPeri
 	}
 	float thetam = asin(b);
 	if (transmissive) {
-		glm::vec3 axis = glm::cross(surfaceNorm, photonDir);
+		glm::vec3 axis = glm::cross(photonDir, surfaceNorm);
 		surfaceNorm *= -1;
 		photon.dir = glm::rotate(surfaceNorm, thetam, axis);
 	}
 	else {
-		glm::vec3 axis = glm::cross(photonDir, surfaceNorm);
+		glm::vec3 axis = glm::cross(surfaceNorm, photonDir);
 		photon.dir = glm::rotate(surfaceNorm, thetam, axis);
 	}
 }
 
-glm::vec3 calculateDiffractionIrradiance(clusterData cluster, glm::vec3 incomingSampleDir) {
-	return glm::vec3(1); //just return white for testing purposes
+void tracePhoton(Photon& photon, VoxelGrid<clusterData>& vGrid) {
+
+	//add a safely limit so the loop isn't infinite
+	int iterations = 100;
+	while (iterations > 0) {
+		iterations--;
+		Ray photonRay = { photon.pos, photon.dir };
+		//calculate intersection with the cluster
+
+		glm::vec3 vGridSize = vGrid.getDimensions();
+		Intersection intersection = voxelGridIntersect(photonRay, vGrid);
+		glm::vec3 toVox = glm::vec3(-1);
+		
+		
+		while (true) {
+			photonRay.origin += photonRay.direction * 0.001f;
+			intersection = voxelGridIntersect(photonRay, vGrid);
+			//if the intersection is invalid just break the loop
+			if (!intersection.isValid)
+				break;
+
+			photonRay.origin = intersection.position;
+
+			//we know the intersection will be on a plane between 2 voxels
+			//calculate the voxel index of the voxel the ray is leaving and the one it is entering over the plane
+			glm::vec3 norm = intersection.normal;
+			glm::vec3 fromVox = floor(intersection.position);
+			toVox = floor(intersection.position);
+			if (norm.x == 1 || norm.y == 1 || norm.z == 1) {
+				toVox -= norm;
+			}
+			else {
+				fromVox += norm;
+			}
+
+			//if the voxel we are entering is outside the boundaries it is not a valid intersection
+			if (toVox.x >= vGridSize.x || toVox.x < 0 ||
+				toVox.y >= vGridSize.y || toVox.y < 0 ||
+				toVox.z >= vGridSize.z || toVox.z < 0) {
+				intersection.isValid = false;
+				break;
+			}
+
+
+			//loop until we aren't hitting empty space in the voxel grid
+			if (vGrid.at(toVox.x, toVox.y, toVox.z).material != Empty) {
+				break;
+			}
+		}
+
+		if (intersection.isValid) {
+			clusterData& data = vGrid.at(toVox.x, toVox.y, toVox.z);
+			//rotate the unit axis and find which one has the smallest dot product
+			//ideally this would choose between rank -1, 0, 1 but for now this works
+			DiffractPhoton(photon, intersection.normal, 600, false, 1);
+			data.photons.push_back(photon);
+		}
+		else {
+			break;
+		}
+	}
 }
 
+// iterates through all of the rays pixel pairs and traces those paths,
+// then assigns them to an image
+void collectPhotons(
+	ImageBuffer& image,
+	Camera& cam,
+	int sample_count,
+	VoxelGrid<clusterData>& vGrid)
+{
+	image.Initialize();
+	std::vector<RayAndPixel> rays = getRaysForViewpoint(image, cam);
+
+	int count = 0;
+	for (auto const& r : rays) {
+		count++;
+		if (count % 5000 == 0) {
+			std::cout << ((float)count * 100) / (image.Width() * image.Height()) << "%\n";
+		}
+		glm::vec3 color = collectRadiance(r.ray, vGrid);
+		//glm::vec3 color = RayTraceVoxelV2(r, sample_count, max_path_length, vGrid);
+		image.SetPixel(r.x, r.y, color);
+		//std::cout << "colour: " << color.x << "," << color.y << "," << color.z << std::endl;
+	}
+}

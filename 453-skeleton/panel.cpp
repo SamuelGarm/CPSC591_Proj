@@ -58,7 +58,7 @@ extern float meanRadius = 3.f;
 extern bool sampleNeighbours = true;
 extern bool fixedRadius = false;
 
-bool retraceImage = false;
+bool castPhotons = false;
 
 // Variables to index inspections
 int inspectX = 0;
@@ -139,14 +139,16 @@ void updateMenu() {
         }
     }
 
-
+    if (Button("Generate Photon Map"))
+      castPhotons = true;
     Spacing();
-    const char* items[] = { "Orientation", "Grating", "Ray Trace"};
+    const char* items[] = { "Orientation", "Grating", "Ray Trace", "Photon Collection"};
 
     //Combo("RenderingPipeline", &renderPipeline, items, 2);
     RadioButton(items[0], &renderPipeline, 0); ImGui::SameLine();
     RadioButton(items[1], &renderPipeline, 1); ImGui::SameLine();
-    RadioButton(items[2], &renderPipeline, 2);
+    RadioButton(items[2], &renderPipeline, 2); ImGui::SameLine();
+    RadioButton(items[3], &renderPipeline, 3);
 
     //Button("Re-trace image" &retraceImage);
 
@@ -208,7 +210,7 @@ void updateMenu() {
                 distributeVoidClusterV2(vGrid, meanRadius, sampleNeighbours);
             }
             trimVGrid(vGrid);
-            fillGridRandColours(vGrid);
+            //fillGridRandColours(vGrid);
             pipelineChanged = true;
         }
     }
