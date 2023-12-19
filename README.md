@@ -89,7 +89,7 @@ Each cluster is a random radius based on an exponential distribution function.
 A 'mean radius' float entry will show up for the user to determine what is the mean radius for the spheres.
 It defaults to 3.0, recommended settings: 2.0 or lower
 
-**Neighbhour Sampling Checkbox**
+**Neighbour Sampling Checkbox**
 This checkbox applies to both 'Linear Random' and 'Exp Dist Sphere' Generations
 It lets the user decide if the cluster generation will sample neighbouring clusters for their orientation and set the current cluster being generated to the average of the neighbours.
 
