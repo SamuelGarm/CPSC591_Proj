@@ -66,7 +66,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 			}
 		}
 	}
-	else {
+	else if (raySigns.x == -1) {
 		//start at the largest x value allowed
 		float xp0 = vGridLargeCorner.x;
 		//if the plane is currently behind the ray dir
@@ -123,7 +123,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 			}
 		}
 	}
-	else {
+	else if(raySigns.y == -1) {
 		//start at the largest x value allowed
 		float yp0 = vGridLargeCorner.y;
 		//if the plane is currently behind the ray dir
@@ -180,7 +180,7 @@ Intersection voxelGridIntersect(const Ray& ray, VoxelGrid<T>& vGrid) {
 			}
 		}
 	}
-	else {
+	else if(raySigns.z == -1) {
 		//start at the largest x value allowed
 		float zp0 = vGridLargeCorner.z;
 		//if the plane is currently behind the ray dir
