@@ -65,9 +65,9 @@ This will influence the look of the diffraction grating (dominating colour spect
 The 'Use Sanders' checkbox needs to be checked for this function to take effect.
 Recommended Setting: 2300.0
 
-##### When 'Ray Trace' is chosen
-WARNING: This will lock down the simulation and you will have to restart the program to get out of the ray trace.
-Proceeds to ray trace the scene using a monte carlo ray tracer
+##### When 'Ray Trace' is chosen (NOT FULLY WORKING)
+WARNING: This will lock down the ImGUI panel, the user will need to hold down the number 1 to return to RGB Orientation mode.
+Proceeds to ray trace the scene using a monte carlo ray tracer.
 
 #### Cluster Control Section
 This section lets you control the cluster generation of the opal
