@@ -65,9 +65,9 @@ This will influence the look of the diffraction grating (dominating colour spect
 The 'Use Sanders' checkbox needs to be checked for this function to take effect.
 Recommended Setting: 2300.0
 
-##### When 'Ray Trace' is chosen
-WARNING: This will lock down the simulation and you will have to restart the program to get out of the ray trace.
-Proceeds to ray trace the scene using a monte carlo ray tracer
+##### When 'Ray Trace' is chosen (NOT FULLY WORKING)
+WARNING: This will lock down the ImGUI panel, the user will need to hold down the number 1 to return to RGB Orientation mode.
+Proceeds to ray trace the scene using a monte carlo ray tracer.
 
 #### Cluster Control Section
 This section lets you control the cluster generation of the opal
@@ -89,7 +89,7 @@ Each cluster is a random radius based on an exponential distribution function.
 A 'mean radius' float entry will show up for the user to determine what is the mean radius for the spheres.
 It defaults to 3.0, recommended settings: 2.0 or lower
 
-**Neighbhour Sampling Checkbox**
+**Neighbour Sampling Checkbox**
 This checkbox applies to both 'Linear Random' and 'Exp Dist Sphere' Generations
 It lets the user decide if the cluster generation will sample neighbouring clusters for their orientation and set the current cluster being generated to the average of the neighbours.
 
